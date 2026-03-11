@@ -64,22 +64,57 @@ async function transcribeVoice(mediaUrl) {
 }
 
 /**
- * Call FastAPI AI service to classify complaint
+ * Call Groq API directly to classify complaint (replaces separate Python service)
  */
 async function classifyComplaint(text, lang = 'en') {
   try {
-    const { data } = await axios.post(`${process.env.FASTAPI_URL}/classify`, {
-      text,
-      lang,
-    });
-    return data;
+    const prompt = `You are an expert municipal complaint classifier for Indian cities.
+    Given the complaint text (which may be in ANY Indian language like Hindi, Marathi, etc. or English), analyze it and return ONLY a valid JSON object.
+    Rules:
+    - department: Choose EXACTLY one of: Roads, Sanitation, Water, Electricity, Other
+    - severity: Choose EXACTLY one of: Low, Medium, High, Critical
+    - summary_en: A single clear English sentence summarizing the complaint (max 20 words)
+    - eta_days: Integer — Critical=1, High=3, Medium=5, Low=7
+    - state: Indian state name if mentioned (e.g., Maharashtra)
+    - district: District or area name if mentioned (e.g., Panvel)
+    - lat/lng: Approximate coordinates if city/district mentioned
+    Complaint: ${text}
+    Return ONLY JSON:`;
+
+    const { data } = await axios.post(
+      'https://api.groq.com/openai/v1/chat/completions',
+      {
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.1,
+        response_format: { type: 'json_object' }
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    const result = JSON.parse(data.choices[0].message.content);
+
+    return {
+      department: result.department || 'Other',
+      severity: result.severity || 'Medium',
+      summary_en: result.summary_en || text.slice(0, 100),
+      eta_days: result.eta_days || 5,
+      state: result.state || '',
+      district: result.district || '',
+      lat: result.lat || null,
+      lng: result.lng || null
+    };
   } catch (err) {
-    console.error('AI classification error:', err.message);
-    // Fallback classification if AI service is down
+    console.error('Groq AI error:', err.response?.data || err.message);
     return {
       department: 'Other',
       severity: 'Medium',
-      summary_en: text || 'Complaint filed without description.',
+      summary_en: text.slice(0, 100),
       eta_days: 5,
       state: '',
       district: '',
