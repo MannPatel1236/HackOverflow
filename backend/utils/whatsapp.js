@@ -39,28 +39,26 @@ async function transcribeVoice(mediaUrl) {
       },
     });
 
-    const form = new FormData();
-    form.append('file', Buffer.from(audioBuffer), {
-      filename: 'audio.ogg',
-      contentType: 'audio/ogg',
-    });
-    form.append('model', 'whisper-1');
-    // Don't specify language — let Whisper auto-detect for multilingual support
+    const { createClient } = require('@deepgram/sdk');
+    const deepgram = createClient(process.env.DEEPGRAM_API_KEY || 'MISSING_KEY');
 
-    const { data } = await axios.post(
-      'https://api.openai.com/v1/audio/transcriptions',
-      form,
+    const { result, error } = await deepgram.listen.prerecorded.transcribeFile(
+      Buffer.from(audioBuffer),
       {
-        headers: {
-          ...form.getHeaders(),
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
+        model: 'nova-2',
+        smart_format: true,
+        detect_language: true,
       }
     );
 
-    return data.text;
+    if (error) throw error;
+    
+    const transcript = result?.results?.channels[0]?.alternatives[0]?.transcript || '';
+    if (!transcript) throw new Error('Empty transcript returned empty text.');
+
+    return transcript;
   } catch (err) {
-    console.error('Whisper transcription error:', err.message);
+    console.error('Deepgram transcription error:', err.message || err);
     throw new Error('Failed to transcribe voice note');
   }
 }

@@ -37,6 +37,7 @@ router.post('/file', userAuth, upload.single('audio'), async (req, res) => {
           {
             model: 'nova-2',
             smart_format: true,
+            detect_language: true,
           }
         );
 
@@ -47,7 +48,7 @@ router.post('/file', userAuth, upload.single('audio'), async (req, res) => {
         
       } catch (dgErr) {
         console.error('Deepgram Transcription failed:', dgErr.message || dgErr);
-        complaintText = "Audio complaint submitted (Transcription unavailable). Please refer to the audio recording.";
+        complaintText = "Audio complaint submitted.";
       }
     }
 
