@@ -180,12 +180,12 @@ router.get('/', adminAuth, async (req, res) => {
 
     // State admins can only see their state
     if (req.admin.role === 'state_admin') {
-      filter.state = req.admin.state;
+      filter.state = { $regex: new RegExp(`^${req.admin.state}$`, 'i') };
     } else if (state) {
-      filter.state = state;
+      filter.state = { $regex: new RegExp(`^${state}$`, 'i') };
     }
 
-    if (district) filter.district = district;
+    if (district) filter.district = { $regex: new RegExp(district, 'i') };
     if (department) filter.department = department;
     if (severity) filter.severity = severity;
     if (status) filter.status = status;
@@ -231,7 +231,7 @@ router.patch('/:id/status', adminAuth, async (req, res) => {
     if (!complaint) return res.status(404).json({ error: 'Complaint not found' });
 
     // State admin can only update complaints in their state
-    if (req.admin.role === 'state_admin' && complaint.state !== req.admin.state) {
+    if (req.admin.role === 'state_admin' && complaint.state !== req.admin.state && complaint.state.toLowerCase() !== req.admin.state.toLowerCase()) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -283,7 +283,7 @@ router.patch('/:id/status', adminAuth, async (req, res) => {
 /**
  * GET /api/complaints/map
  * Auth: Admin JWT
- * Returns aggregated complaint counts per district
+ * Returns raw complaint data for individual markers
  */
 router.get('/map/data', adminAuth, async (req, res) => {
   try {
@@ -291,34 +291,22 @@ router.get('/map/data', adminAuth, async (req, res) => {
     const matchState = req.admin.role === 'state_admin' ? req.admin.state : state;
 
     const filter = {};
-    if (matchState) filter.state = matchState;
+    if (matchState) filter.state = { $regex: new RegExp(`^${matchState}$`, 'i') };
 
     const data = await Complaint.aggregate([
       { $match: filter },
       {
-        $group: {
-          _id: { state: '$state', district: '$district' },
-          count: { $sum: 1 },
-          resolved: { $sum: { $cond: [{ $eq: ['$status', 'Resolved'] }, 1, 0] } },
-          critical: { $sum: { $cond: [{ $eq: ['$severity', 'Critical'] }, 1, 0] } },
-          sla_breaches: { $sum: { $cond: ['$sla_breach', 1, 0] } },
-          lat: { $avg: '$lat' },
-          lng: { $avg: '$lng' },
-        },
-      },
-      {
         $project: {
-          state: '$_id.state',
-          district: '$_id.district',
-          count: 1,
-          resolved: 1,
-          critical: 1,
-          sla_breaches: 1,
+          tracking_id: 1,
+          state: 1,
+          district: 1,
+          status: 1,
+          severity: 1,
+          sla_breach: 1,
           lat: 1,
           lng: 1,
-          resolve_pct: {
-            $multiply: [{ $divide: ['$resolved', '$count'] }, 100],
-          },
+          department: 1,
+          summary_en: 1,
         },
       },
     ]);
