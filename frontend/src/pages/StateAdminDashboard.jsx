@@ -96,7 +96,7 @@ export default function StateAdminDashboard() {
             </h1>
             <p className="text-[13px] text-muted font-medium">Municipal officer view — manage and analyze complaints across your state</p>
           </div>
-          <div className="flex items-center gap-[6px] bg-white px-[12px] py-[6px] rounded-[4px] border border-border shrink-0">
+          <div className="flex items-center gap-[6px] bg-white px-[12px] py-[6px] rounded-[4px] border border-border shrink-0 self-start md:self-auto">
             <div className="w-[8px] h-[8px] rounded-full bg-green animate-pulse" />
             <span className="text-[11px] font-bold text-muted uppercase tracking-wider mt-[1px]">Live Network Active</span>
           </div>
@@ -104,7 +104,7 @@ export default function StateAdminDashboard() {
 
         {/* Stats Row */}
         {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-[16px] mb-[24px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px] mb-[24px]">
              
             <div className="flex flex-col gap-1 p-4 border border-border rounded-[6px] bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all">
               <div className="flex justify-between items-center mb-1">
@@ -233,31 +233,31 @@ export default function StateAdminDashboard() {
           {/* List/Sidebar Column (Takes 1/3 width) */}
           <div className="lg:col-span-1 flex flex-col h-full bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-hidden">
              
-             {/* Filter Header Fixed */}
-             <div className="px-[20px] py-[16px] border-b border-border bg-off shrink-0">
-                <div className="flex items-center gap-[8px] mb-[12px]">
-                   <span className="w-[12px] h-[2px] bg-burg"></span>
-                   <h2 className="text-[13px] font-bold text-text uppercase tracking-wider">Filter Registry</h2>
-                </div>
-                <div className="grid grid-cols-2 gap-[10px]">
-                  <select value={filters.department} onChange={(e) => setFilters({ ...filters, department: e.target.value })} className="input text-[12px] py-[6px] px-[8px] bg-white border-border focus:border-burg cursor-pointer font-medium font-sans">
-                    <option value="">All Depts</option>
-                    {['Roads', 'Sanitation', 'Water', 'Electricity', 'Other'].map((d) => <option key={d}>{d}</option>)}
-                  </select>
-                  <select value={filters.severity} onChange={(e) => setFilters({ ...filters, severity: e.target.value })} className="input text-[12px] py-[6px] px-[8px] bg-white border-border focus:border-burg cursor-pointer font-medium font-sans">
-                    <option value="">All Severities</option>
-                    {['Critical', 'High', 'Medium', 'Low'].map((s) => <option key={s}>{s}</option>)}
-                  </select>
-                  <select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })} className="input text-[12px] py-[6px] px-[8px] bg-white border-border focus:border-burg cursor-pointer font-medium font-sans">
-                    <option value="">All Statuses</option>
-                    {['Registered', 'Under Review', 'In Progress', 'Resolved'].map((s) => <option key={s}>{s}</option>)}
-                  </select>
-                  <select value={filters.sla_breach} onChange={(e) => setFilters({ ...filters, sla_breach: e.target.value })} className="input text-[12px] py-[6px] px-[8px] bg-burg border-burg text-white font-bold cursor-pointer">
-                    <option value="">SLA Filter</option>
-                    <option value="true">Breaches Only</option>
-                  </select>
-                </div>
-             </div>
+              {/* Filter Header Fixed */}
+              <div className="px-[20px] py-[16px] border-b border-border bg-off shrink-0">
+                 <div className="flex items-center gap-[8px] mb-[12px]">
+                    <span className="w-[12px] h-[2px] bg-burg"></span>
+                    <h2 className="text-[13px] font-bold text-text uppercase tracking-wider">Filter Registry</h2>
+                 </div>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
+                   <select value={filters.department} onChange={(e) => setFilters({ ...filters, department: e.target.value })} className="input text-[12px] py-[6px] px-[8px] bg-white border-border focus:border-burg cursor-pointer font-medium font-sans">
+                     <option value="">All Depts</option>
+                     {['Roads', 'Sanitation', 'Water', 'Electricity', 'Other'].map((d) => <option key={d}>{d}</option>)}
+                   </select>
+                   <select value={filters.severity} onChange={(e) => setFilters({ ...filters, severity: e.target.value })} className="input text-[12px] py-[6px] px-[8px] bg-white border-border focus:border-burg cursor-pointer font-medium font-sans">
+                     <option value="">All Severities</option>
+                     {['Critical', 'High', 'Medium', 'Low'].map((s) => <option key={s}>{s}</option>)}
+                   </select>
+                   <select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })} className="input text-[12px] py-[6px] px-[8px] bg-white border-border focus:border-burg cursor-pointer font-medium font-sans">
+                     <option value="">All Statuses</option>
+                     {['Registered', 'Under Review', 'In Progress', 'Resolved'].map((s) => <option key={s}>{s}</option>)}
+                   </select>
+                   <select value={filters.sla_breach} onChange={(e) => setFilters({ ...filters, sla_breach: e.target.value })} className="input text-[12px] py-[6px] px-[8px] bg-burg border-burg text-white font-bold cursor-pointer">
+                     <option value="">SLA Filter</option>
+                     <option value="true">Breaches Only</option>
+                   </select>
+                 </div>
+              </div>
 
              {/* Scrollable List */}
              <div className="flex-1 overflow-y-auto bg-cream/30 p-[12px] space-y-[12px]">

@@ -119,7 +119,7 @@ export default function SuperAdminDashboard() {
         {tab === 'overview' && (
           <div className="space-y-[24px] animate-fade-in">
             {/* National Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-[16px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
               {loading ? (
                 [...Array(4)].map((_, i) => <div key={i} className="card h-[100px] bg-off border border-border rounded-[6px] animate-pulse" />)
               ) : [
@@ -353,7 +353,7 @@ export default function SuperAdminDashboard() {
                   </div>
                 ))}
                 
-                <div className="grid grid-cols-2 gap-[16px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
                   <div>
                     <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-[6px]">Clearance Level</label>
                     <select

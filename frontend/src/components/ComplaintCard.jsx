@@ -56,7 +56,7 @@ export default function ComplaintCard({ complaint, showActions, onStatusChange }
                 </span>
              )}
           </div>
-          <h3 className="text-[14px] font-bold text-text truncate mb-[4px]">
+          <h3 className="text-[14px] font-bold text-text line-clamp-2 leading-snug mb-[4px]" title={complaint.summary_en}>
              {complaint.summary_en || 'Complaint Summary Pending'}
           </h3>
           <div className="flex items-center gap-[12px] text-[11px] text-muted font-medium">

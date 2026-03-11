@@ -62,7 +62,7 @@ export default function UserDashboard() {
           {/* Stats Overview */}
           <div className="card p-[22px]">
             <h2 className="text-[14px] font-bold text-text mb-[16px]">Overview</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-[16px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-[16px]">
               
               <div className="flex flex-col gap-1 p-3 border border-border rounded-[6px] bg-white">
                 <div className="flex justify-between items-center mb-1">

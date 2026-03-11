@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 
 export default function Navbar() {
   const { user, admin, logout } = useAuth();
@@ -42,8 +43,8 @@ export default function Navbar() {
         {/* Right Actions */}
         <div className="flex items-center gap-[10px]">
           {(user || admin) ? (
-            <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-[10px]">
+            <div className="hidden md:flex items-center gap-3">
+              <div className="flex items-center gap-[10px]">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-burg-2 to-[#6B1010] flex items-center justify-center text-[13px] font-bold text-white">
                   {user?.name?.[0] || admin?.name?.[0] || 'U'}
                 </div>
@@ -64,14 +65,61 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2">
               <Link to="/login" className="px-[18px] py-[7px] bg-navy text-white rounded font-semibold text-xs cursor-pointer hover:bg-[#2a2a2a] transition-colors whitespace-nowrap">
                 Login / Sign Up
               </Link>
             </div>
           )}
+
+          {/* Mobile Menu Toggle */}
+          <div className="md:flex hidden items-center pr-2" style={{ display: 'flex' }}>
+            <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-muted hover:text-text transition-colors p-[4px] ml-2 block relative z-50">
+              {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Mobile Dropdown Menu */}
+      {menuOpen && (
+        <div className="absolute top-[52px] left-0 w-full bg-white border-b border-border shadow-2xl flex flex-col py-2 px-6 md:hidden z-40">
+          {user && (
+            <>
+              <Link to="/dashboard" onClick={() => setMenuOpen(false)} className={`py-4 border-b border-border/40 text-[15px] font-semibold ${isActive('/dashboard') ? 'text-burg' : 'text-text'}`}>Dashboard</Link>
+              <Link to="/file-complaint" onClick={() => setMenuOpen(false)} className={`py-4 border-b border-border/40 text-[15px] font-semibold ${isActive('/file-complaint') ? 'text-burg' : 'text-text'}`}>File Complaint</Link>
+            </>
+          )}
+          {admin && (
+            <>
+              <Link to="/admin" onClick={() => setMenuOpen(false)} className={`py-4 border-b border-border/40 text-[15px] font-semibold ${isActive('/admin') ? 'text-burg' : 'text-text'}`}>
+                {admin.role === 'super_admin' ? 'Super Admin' : `${admin.state} Admin`}
+              </Link>
+            </>
+          )}
+
+          {(user || admin) ? (
+            <div className="py-5 flex items-center justify-between">
+              <div className="flex items-center gap-[12px]">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-burg-2 to-[#6B1010] flex items-center justify-center text-[15px] font-bold text-white shadow-sm">
+                  {user?.name?.[0] || admin?.name?.[0] || 'U'}
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-[15px] font-bold text-text leading-tight">
+                    {user?.name || admin?.name || (user?.phone?.slice(-4) ? `···${user.phone.slice(-4)}` : '')}
+                  </p>
+                  <p className="text-[12px] text-muted capitalize leading-tight font-medium mt-0.5">
+                    {admin ? admin.role.replace('_', ' ') : 'Citizen'}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => { logout(); setMenuOpen(false); }} className="text-[13px] font-bold text-burg hover:text-white hover:bg-burg transition-colors bg-burg-bg px-4 py-2 rounded-[6px]">Sign out</button>
+            </div>
+          ) : (
+            <Link to="/login" onClick={() => setMenuOpen(false)} className="py-5 text-[14px] font-bold text-navy text-center uppercase tracking-wider my-2 bg-off rounded-[6px]">Login / Sign Up</Link>
+          )}
+        </div>
+      )}
     </nav>
   );
 }

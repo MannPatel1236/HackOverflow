@@ -128,7 +128,9 @@ export default function TrackComplaint() {
                    <span className="font-mono bg-off px-2 py-0.5 rounded border border-border text-text font-bold text-[14px] tracking-wide inline-block">{complaint.tracking_id}</span>
                 </div>
               </div>
-              <p className="font-serif text-[18px] text-text font-bold leading-[1.4]">{complaint.summary_en}</p>
+              <p className={`font-serif text-[18px] text-text font-bold leading-[1.4] ${complaint.summary_en.includes('Audio complaint submitted') ? 'italic text-muted' : ''}`}>
+                {complaint.summary_en.includes('Audio complaint submitted') ? 'Audio Grievance Processing' : complaint.summary_en}
+              </p>
             </div>
           </div>
 

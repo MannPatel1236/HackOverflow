@@ -19,7 +19,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Use Groq's Free API instead of paid OpenAI
+client = openai.OpenAI(
+    api_key=os.getenv("GROQ_API_KEY", "EMPTY"),
+    base_url="https://api.groq.com/openai/v1",
+)
 
 
 class ComplaintInput(BaseModel):
@@ -87,8 +91,8 @@ async def classify_complaint(input: ComplaintInput):
     prompt = CLASSIFY_PROMPT.format(complaint_text=input.text)
 
     try:
-        response = openai.chat.completions.create(
-            model="gpt-4o",
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.1,
             max_tokens=400,
@@ -156,8 +160,8 @@ async def transcribe_audio_endpoint(url: str, account_sid: str, auth_token: str)
             temp_path = f.name
 
         with open(temp_path, "rb") as audio_file:
-            transcript = openai.audio.transcriptions.create(
-                model="whisper-1",
+            transcript = client.audio.transcriptions.create(
+                model="whisper-large-v3",
                 file=audio_file,
             )
 
@@ -166,3 +170,8 @@ async def transcribe_audio_endpoint(url: str, account_sid: str, auth_token: str)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    print("Starting CivicAI Python Service...")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

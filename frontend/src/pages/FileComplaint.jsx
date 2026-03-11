@@ -117,7 +117,7 @@ export default function FileComplaint() {
               <span className="text-[12px] font-semibold text-muted">Expected Resolution</span>
               <span className="text-[13px] font-bold text-text">{success.complaint.eta_days} days</span>
             </div>
-            {!success.complaint.summary_en.includes('Transcription unavailable') && (
+            {success.complaint.summary_en !== 'Audio complaint submitted.' && (
               <div className="pt-[16px] mt-[8px] border-t border-border">
                 <p className="text-[10px] font-bold text-burg uppercase tracking-[2px] mb-2 flex items-center gap-2 before:content-[''] before:w-[12px] before:h-[2px] before:bg-burg">AI Summary</p>
                 <p className="text-[14px] text-text font-serif leading-[1.6] bg-cream p-[12px] rounded-[4px] border border-border">{success.complaint.summary_en}</p>
