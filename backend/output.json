@@ -1,0 +1,56 @@
+[
+  {
+    "tracking_id": "CIV-MMM25Y3G-JB1",
+    "state": "Maharashtra",
+    "district": "malad ",
+    "city": "malad east ",
+    "lat": 18.89346458490373,
+    "lng": 73.17651995710516,
+    "status": "Registered"
+  },
+  {
+    "tracking_id": "CIV-MMM3FHIS-O4E",
+    "state": "Maharashtra",
+    "district": "mumbai",
+    "city": "vile prle",
+    "lat": 18.893497,
+    "lng": 73.17643,
+    "status": "Registered"
+  },
+  {
+    "tracking_id": "CIV-MMMAT1MT-XIV",
+    "state": "",
+    "district": "vile parle weat maharastra",
+    "city": "",
+    "lat": null,
+    "lng": null,
+    "status": "Registered"
+  },
+  {
+    "tracking_id": "CIV-MMMAWWQY-41E",
+    "state": "",
+    "district": "",
+    "city": "",
+    "lat": null,
+    "lng": null,
+    "status": "Registered"
+  },
+  {
+    "tracking_id": "CIV-MMMCOV1L-T69",
+    "state": "maharashtra",
+    "district": "mumbai",
+    "city": "",
+    "lat": null,
+    "lng": null,
+    "status": "Registered"
+  },
+  {
+    "tracking_id": "CIV-MMMGLARY-FSH",
+    "state": "महाराष्ट्र |",
+    "district": "मुंबई",
+    "city": "",
+    "lat": null,
+    "lng": null,
+    "status": "Registered"
+  }
+]
