@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const FormData = require('form-data');
 
-mongoose.connect('mongodb+srv://dharmichauhan10_db_user:dharmi1007@cluster0.9rarepw.mongodb.net/?appName=Cluster0').then(async () => {
+mongoose.connect('MONGO_URI').then(async () => {
   const User = require('./models/User');
   const user = await User.findOne();
   if (!user) return console.log('No user found');

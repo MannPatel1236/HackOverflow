@@ -56,8 +56,8 @@ export default function LandingPage() {
         </div>
         
         {/* Right side graphical hero */}
-        <div className="bg-cream relative overflow-hidden hidden md:flex items-center justify-center min-h-[480px]">
-          <RotatingEarth className="w-full max-w-[600px] absolute !bg-transparent inset-0 m-auto opacity-80" />
+        <div className="bg-cream relative overflow-hidden hidden md:flex items-center justify-center h-full w-full py-12">
+          <RotatingEarth className="w-full max-w-[500px] flex items-center justify-center opacity-85" />
         </div>
       </section>
 

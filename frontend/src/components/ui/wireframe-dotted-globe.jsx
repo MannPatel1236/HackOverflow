@@ -1,33 +1,52 @@
 import { useEffect, useRef, useState } from "react"
 import * as d3 from "d3"
 
-export default function RotatingEarth({ width = 800, height = 600, className = "" }) {
+export default function RotatingEarth({ className = "" }) {
+  const containerRef = useRef(null)
   const canvasRef = useRef(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
+  // 1. Observe parent container for exactly square pixel dimensions
   useEffect(() => {
-    if (!canvasRef.current) return
+    if (!containerRef.current) return
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        setDimensions({
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        })
+      }
+    })
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [])
+
+  // 2. Draw D3 logic using exact dimensions
+  useEffect(() => {
+    const { width: containerWidth, height: containerHeight } = dimensions
+    if (!canvasRef.current || containerWidth === 0 || containerHeight === 0) return
 
     const canvas = canvasRef.current
     const context = canvas.getContext("2d")
     if (!context) return
 
-    const containerWidth = Math.min(width, window.innerWidth - 40)
-    const containerHeight = Math.min(height, window.innerHeight - 100)
-    const radius = Math.min(containerWidth, containerHeight) / 2.5
+    // Ensure perfect 1:1 ratio Math
+    const size = Math.min(containerWidth, containerHeight)
+    const radius = size / 2.2
 
     const dpr = window.devicePixelRatio || 1
-    canvas.width = containerWidth * dpr
-    canvas.height = containerHeight * dpr
-    canvas.style.width = `${containerWidth}px`
-    canvas.style.height = `${containerHeight}px`
+    canvas.width = size * dpr
+    canvas.height = size * dpr
+    canvas.style.width = `${size}px`
+    canvas.style.height = `${size}px`
     context.scale(dpr, dpr)
 
     const projection = d3
       .geoOrthographic()
       .scale(radius)
-      .translate([containerWidth / 2, containerHeight / 2])
+      .translate([size / 2, size / 2])
       .clipAngle(90)
 
     const path = d3.geoPath().projection(projection).context(context)
@@ -108,13 +127,13 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
     let landFeatures
 
     const render = () => {
-      context.clearRect(0, 0, containerWidth, containerHeight)
+      context.clearRect(0, 0, size, size)
 
       const currentScale = projection.scale()
       const scaleFactor = currentScale / radius
 
       context.beginPath()
-      context.arc(containerWidth / 2, containerHeight / 2, currentScale, 0, 2 * Math.PI)
+      context.arc(size / 2, size / 2, currentScale, 0, 2 * Math.PI)
       context.fillStyle = "transparent"
       context.fill()
       context.strokeStyle = "#8B1A1A"
@@ -141,12 +160,13 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
 
         allDots.forEach((dot) => {
           const projected = projection([dot.lng, dot.lat])
+          // Bounds check with square dimensions
           if (
             projected &&
             projected[0] >= 0 &&
-            projected[0] <= containerWidth &&
+            projected[0] <= size &&
             projected[1] >= 0 &&
-            projected[1] <= containerHeight
+            projected[1] <= size
           ) {
             context.beginPath()
             context.arc(projected[0], projected[1], 1.2 * scaleFactor, 0, 2 * Math.PI)
@@ -246,7 +266,7 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
       canvas.removeEventListener("mousedown", handleMouseDown)
       canvas.removeEventListener("wheel", handleWheel)
     }
-  }, [width, height])
+  }, [dimensions]) // Re-run D3 math when size changes
 
   if (error) {
     return (
@@ -260,11 +280,10 @@ export default function RotatingEarth({ width = 800, height = 600, className = "
   }
 
   return (
-    <div className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative flex items-center justify-center aspect-square ${className}`}>
       <canvas
         ref={canvasRef}
-        className="w-full h-auto rounded-[12px] bg-transparent cursor-grab active:cursor-grabbing"
-        style={{ maxWidth: "100%", height: "auto" }}
+        className="w-full h-full rounded-[12px] bg-transparent cursor-grab active:cursor-grabbing"
       />
     </div>
   )

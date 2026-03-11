@@ -81,7 +81,7 @@ async function classifyComplaint(text, lang = 'en') {
     return {
       department: 'Other',
       severity: 'Medium',
-      summary_en: text.substring(0, 100),
+      summary_en: text || 'Complaint filed without description.',
       eta_days: 5,
       state: '',
       district: '',

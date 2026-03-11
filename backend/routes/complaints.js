@@ -26,34 +26,28 @@ router.post('/file', userAuth, upload.single('audio'), async (req, res) => {
     const { text, state, district, city, lat, lng } = req.body;
     let complaintText = text || '';
 
-    // If audio uploaded, transcribe it
+    // If audio uploaded, transcribe it with Deepgram (Free Tier)
     if (req.file) {
-      // Upload to a storage service in prod; for hackathon use base64 or temp URL
-      // Here we pass it directly to OpenAI via base64
-      const FormData = require('form-data');
-      const axios = require('axios');
-      const form = new FormData();
-      form.append('file', req.file.buffer, {
-        filename: `audio_${Date.now()}.webm`,
-        contentType: req.file.mimetype,
-      });
-      form.append('model', 'whisper-1');
-
       try {
-        const { data } = await axios.post(
-          'https://api.openai.com/v1/audio/transcriptions',
-          form,
+        const { createClient } = require('@deepgram/sdk');
+        const deepgram = createClient(process.env.DEEPGRAM_API_KEY || 'MISSING_KEY');
+        
+        const { result, error } = await deepgram.listen.prerecorded.transcribeFile(
+          req.file.buffer,
           {
-            headers: {
-              ...form.getHeaders(),
-              Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            },
+            model: 'nova-2',
+            smart_format: true,
           }
         );
-        complaintText = data.text;
-      } catch (openaiErr) {
-        console.error('OpenAI Transcription failed:', openaiErr.message);
-        complaintText = "Audio complaint submitted (Transcription unavailable due to AI service error). Please refer to the audio recording.";
+
+        if (error) throw error;
+        
+        complaintText = result?.results?.channels[0]?.alternatives[0]?.transcript || '';
+        if (!complaintText) throw new Error('Empty transcript returned');
+        
+      } catch (dgErr) {
+        console.error('Deepgram Transcription failed:', dgErr.message || dgErr);
+        complaintText = "Audio complaint submitted (Transcription unavailable). Please refer to the audio recording.";
       }
     }
 
