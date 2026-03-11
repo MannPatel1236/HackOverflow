@@ -39,17 +39,22 @@ router.post('/file', userAuth, upload.single('audio'), async (req, res) => {
       });
       form.append('model', 'whisper-1');
 
-      const { data } = await axios.post(
-        'https://api.openai.com/v1/audio/transcriptions',
-        form,
-        {
-          headers: {
-            ...form.getHeaders(),
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          },
-        }
-      );
-      complaintText = data.text;
+      try {
+        const { data } = await axios.post(
+          'https://api.openai.com/v1/audio/transcriptions',
+          form,
+          {
+            headers: {
+              ...form.getHeaders(),
+              Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+            },
+          }
+        );
+        complaintText = data.text;
+      } catch (openaiErr) {
+        console.error('OpenAI Transcription failed:', openaiErr.message);
+        complaintText = "Audio complaint submitted (Transcription unavailable due to AI service error). Please refer to the audio recording.";
+      }
     }
 
     if (!complaintText.trim()) {

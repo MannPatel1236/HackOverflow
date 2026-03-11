@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import StatusTimeline from '../components/StatusTimeline';
 import { trackComplaint } from '../utils/api';
+import { Search, Map, Trash2, Droplets, Zap, ClipboardList, Smartphone, Globe } from 'lucide-react';
 
 const SEVERITY_COLORS = {
   Critical: 'bg-burg-bg text-burg border-burg/20', 
@@ -69,7 +70,7 @@ export default function TrackComplaint() {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center px-6">
         <div className="text-center max-w-[400px] bg-white p-[32px] rounded-[8px] border border-border shadow-sm">
-          <div className="w-[64px] h-[64px] mx-auto bg-off rounded-full flex items-center justify-center text-[28px] mb-[16px] border border-border">🔍</div>
+          <div className="w-[64px] h-[64px] mx-auto bg-off rounded-full flex items-center justify-center text-[28px] mb-[16px] border border-border"><Search size={28} /></div>
           <h2 className="font-serif text-[24px] font-bold text-text mb-[8px]">{error}</h2>
           <p className="text-[14px] text-muted leading-[1.6] mb-[24px]">We couldn't find a complaint with that tracking ID. Please verify the ID and try again.</p>
           <Link to="/dashboard" className="btn-primary inline-flex px-[24px]">← Return to Dashboard</Link>
@@ -78,7 +79,7 @@ export default function TrackComplaint() {
     );
   }
 
-  const DEPT_ICONS = { Roads: '🛣️', Sanitation: '🗑️', Water: '💧', Electricity: '⚡', Other: '📋' };
+  const DEPT_ICONS = { Roads: <Map size={16} className="inline mr-1"/>, Sanitation: <Trash2 size={16} className="inline mr-1"/>, Water: <Droplets size={16} className="inline mr-1"/>, Electricity: <Zap size={16} className="inline mr-1"/>, Other: <ClipboardList size={16} className="inline mr-1"/> };
 
   return (
     <div className="min-h-screen bg-cream flex flex-col">
@@ -137,7 +138,7 @@ export default function TrackComplaint() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-[20px] gap-x-[16px]">
             {[
               { label: 'Assigned Dept.', value: complaint.department },
-              { label: 'Reported Via', value: complaint.channel === 'whatsapp' ? '📱 WhatsApp' : '🌐 Web Portal' },
+              { label: 'Reported Via', value: complaint.channel === 'whatsapp' ? <><Smartphone size={16} className="inline mr-1"/> WhatsApp</> : <><Globe size={16} className="inline mr-1"/> Web Portal</> },
               { label: 'System Severity', value: (
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block ${SEVERITY_COLORS[complaint.severity]}`}>{complaint.severity}</span>
               )},
@@ -203,7 +204,7 @@ export default function TrackComplaint() {
             }}
             className="flex-1 py-[14px] text-[13px] font-bold flex items-center justify-center gap-[8px] bg-[#25D366] hover:bg-[#20bd5a] text-white border-none rounded-[5px] transition-colors cursor-pointer shadow-[0_2px_8px_rgba(37,211,102,0.2)]"
           >
-            <span className="text-[16px] leading-none">📱</span> Receive WhatsApp Updates
+            <Smartphone className="w-4 h-4" /> Receive WhatsApp Updates
           </button>
         </div>
 

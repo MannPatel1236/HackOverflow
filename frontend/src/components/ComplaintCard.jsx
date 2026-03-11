@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Map, Trash2, Droplets, Zap, ClipboardList, MapPin, Clock, CheckCircle } from 'lucide-react';
 
 const SEVERITY_STYLES = {
   Critical: 'bg-burg-bg text-burg border-burg/20',
@@ -15,15 +16,15 @@ const STATUS_STYLES = {
 };
 
 const DEPT_ICONS = {
-  Roads: '🛣️',
-  Sanitation: '🗑️',
-  Water: '💧',
-  Electricity: '⚡',
-  Other: '📋',
+  Roads: <Map size={14} className="inline mr-1"/>,
+  Sanitation: <Trash2 size={14} className="inline mr-1"/>,
+  Water: <Droplets size={14} className="inline mr-1"/>,
+  Electricity: <Zap size={14} className="inline mr-1"/>,
+  Other: <ClipboardList size={14} className="inline mr-1"/>,
 };
 
 export default function ComplaintCard({ complaint, showActions, onStatusChange }) {
-  const deptIcon = DEPT_ICONS[complaint.department] || '📋';
+  const deptIcon = DEPT_ICONS[complaint.department] || <ClipboardList size={14} className="inline mr-1"/>;
   const filed = new Date(complaint.filed_at).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'short', year: 'numeric',
   });
@@ -60,7 +61,7 @@ export default function ComplaintCard({ complaint, showActions, onStatusChange }
           </h3>
           <div className="flex items-center gap-[12px] text-[11px] text-muted font-medium">
              <span className="flex items-center gap-1">🏢 {complaint.department}</span>
-             {complaint.district && <span className="flex items-center gap-1">📍 {complaint.district}, {complaint.state}</span>}
+             {complaint.district && <span className="flex items-center gap-1"><MapPin size={12} className="inline mr-1"/> {complaint.district}, {complaint.state}</span>}
              <span className="flex items-center gap-1">🕒 {filed}</span>
           </div>
         </div>

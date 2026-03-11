@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: 'http://localhost:5001/api',
   timeout: 30000,
 });
 
@@ -35,9 +35,7 @@ export const adminLogin = (email, password) => API.post('/auth/admin/login', { e
 
 // ── COMPLAINTS ─────────────────────────────────────────────────────────────
 export const fileComplaint = (formData) =>
-  API.post('/complaints/file', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  API.post('/complaints/file', formData);
 export const trackComplaint = (trackingId) => API.get(`/complaints/track/${trackingId}`);
 export const getMyComplaints = () => API.get('/complaints/my');
 export const getComplaints = (params) => API.get('/complaints', { params });

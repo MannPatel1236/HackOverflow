@@ -1,59 +1,34 @@
-const http = require('http');
+const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const axios = require('axios');
+const FormData = require('form-data');
 
-function post(path, body) {
-    return new Promise((resolve, reject) => {
-        const data = JSON.stringify(body);
-        const options = {
-            hostname: 'localhost',
-            port: 5000,
-            path,
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(data),
-            },
-        };
-        const req = http.request(options, (res) => {
-            let raw = '';
-            res.on('data', (chunk) => (raw += chunk));
-            res.on('end', () => {
-                console.log(`\n✅ POST ${path}`);
-                try { console.log(JSON.parse(raw)); } catch { console.log(raw); }
-                resolve(JSON.parse(raw));
-            });
-        });
-        req.on('error', reject);
-        req.write(data);
-        req.end();
+mongoose.connect('mongodb+srv://dharmichauhan10_db_user:dharmi1007@cluster0.9rarepw.mongodb.net/?appName=Cluster0').then(async () => {
+  const User = require('./models/User');
+  const user = await User.findOne();
+  if (!user) return console.log('No user found');
+  
+  const token = jwt.sign({ id: user._id, type: 'user' }, 'thisisourhackathoninwhichwearemakingcivicai');
+  
+  const fd = new FormData();
+  fd.append('text', 'hello bbg from test script');
+  fd.append('state', 'Maharashtra');
+  fd.append('district', 'mumbai');
+  fd.append('city', 'vile parle');
+  
+  try {
+    const res = await axios.post('http://localhost:5001/api/complaints/file', fd, {
+      headers: {
+        ...fd.getHeaders(),
+        Authorization: 'Bearer ' + token
+      }
     });
-}
-
-async function run() {
-    // Test 1: Send OTP
-    const otp = await post('/api/auth/send-otp', { phone: '+919876543210' });
-
-    // Test 2: Verify OTP
-    const user = await post('/api/auth/verify-otp', {
-        phone: '+919876543210',
-        otp: otp.dev_otp,
-        name: 'Test User',
-    });
-
-    // Test 3: Seed super admin (ignore error if already exists)
-    await post('/api/auth/admin/seed', {
-        secret: 'CIVICAI_SEED_2024',
-        name: 'Super Admin',
-        email: 'admin@civicai.in',
-        password: 'civicai@2024',
-    });
-
-    // Test 4: Admin login
-    await post('/api/auth/admin/login', {
-        email: 'admin@civicai.in',
-        password: 'civicai@2024',
-    });
-
-    console.log('\n🎉 All auth routes working!');
-}
-
-run().catch(console.error);
+    console.log('SUCCESS:', res.data);
+  } catch (err) {
+    console.log('AXIOS ERROR:', err.message);
+    if (err.response) {
+      console.log('RESPONSE DATA:', err.response.data);
+    }
+  }
+  process.exit(0);
+});

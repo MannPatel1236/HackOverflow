@@ -57,7 +57,7 @@ export default function FileComplaint() {
 
     try {
       const fd = new FormData();
-      if (audioBlob) {
+      if (mode === 'voice' && audioBlob) {
         fd.append('audio', audioBlob, 'complaint.webm');
       } else {
         fd.append('text', form.text);

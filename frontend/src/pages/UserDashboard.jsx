@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import ComplaintCard from '../components/ComplaintCard';
 import { useAuth } from '../context/AuthContext';
 import { getMyComplaints } from '../utils/api';
+import { Smartphone, ClipboardList, CheckCircle, Clock, Inbox } from 'lucide-react';
 
 export default function UserDashboard() {
   const { user } = useAuth();
@@ -50,7 +51,7 @@ export default function UserDashboard() {
             </div>
             <div className="flex gap-[10px] shrink-0">
               <button onClick={openWhatsApp} className="bg-[#25D366] hover:bg-[#20bd5a] text-white border-none rounded-[5px] px-[14px] py-[8px] text-[12px] font-semibold flex items-center gap-[6px] transition-colors cursor-pointer shadow-[0_2px_8px_rgba(37,211,102,0.2)]">
-                <span className="text-base leading-none">📱</span> File on WhatsApp
+                <Smartphone className="w-4 h-4 mr-2" /> File on WhatsApp
               </button>
               <Link to="/file-complaint" className="btn-primary text-[12px] px-[14px] py-[8px] shadow-[0_2px_8px_rgba(139,26,26,0.2)]">
                 + File Complaint
@@ -66,7 +67,7 @@ export default function UserDashboard() {
               <div className="flex flex-col gap-1 p-3 border border-border rounded-[6px] bg-white">
                 <div className="flex justify-between items-center mb-1">
                    <div className="text-[11px] font-bold text-muted uppercase tracking-wider">Total Filed</div>
-                   <div className="opacity-50 text-[14px]">📋</div>
+                   <ClipboardList className="opacity-50 w-4 h-4" />
                 </div>
                 <div className="font-serif text-[28px] font-black text-burg leading-none">{stats.total}</div>
                 <div className="text-[10px] text-muted">All active complaints</div>
@@ -75,7 +76,7 @@ export default function UserDashboard() {
               <div className="flex flex-col gap-1 p-3 border border-border rounded-[6px] bg-green-bg">
                 <div className="flex justify-between items-center mb-1">
                    <div className="text-[11px] font-bold text-green uppercase tracking-wider">Resolved</div>
-                   <div className="opacity-50 text-[14px]">✅</div>
+                   <CheckCircle className="opacity-50 w-4 h-4" />
                 </div>
                 <div className="font-serif text-[28px] font-black text-green leading-none">{stats.resolved}</div>
                 <div className="text-[10px] text-green/70">Successfully closed</div>
@@ -84,7 +85,7 @@ export default function UserDashboard() {
               <div className="flex flex-col gap-1 p-3 border border-border rounded-[6px] bg-amber-bg">
                 <div className="flex justify-between items-center mb-1">
                    <div className="text-[11px] font-bold text-amber uppercase tracking-wider">Pending</div>
-                   <div className="opacity-50 text-[14px]">⏳</div>
+                   <Clock className="opacity-50 w-4 h-4" />
                 </div>
                 <div className="font-serif text-[28px] font-black text-amber leading-none">{stats.pending}</div>
                 <div className="text-[10px] text-amber/70">Awaiting action</div>
@@ -121,7 +122,7 @@ export default function UserDashboard() {
             ) : complaints.length === 0 ? (
               <div className="card p-[40px] flex flex-col items-center justify-center text-center border-dashed border-2 border-border/60 bg-white/50">
                 <div className="w-[60px] h-[60px] rounded-full bg-cream border border-border flex items-center justify-center text-[28px] mb-[16px] shadow-sm">
-                  📭
+                  <Inbox className="w-8 h-8 mb-[12px] opacity-60" />
                 </div>
                 <h3 className="text-[16px] font-bold text-text mb-[6px]">No complaints filed yet</h3>
                 <p className="text-[13px] text-muted mb-[20px] max-w-[300px]">

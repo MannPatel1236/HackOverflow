@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import Navbar from '../components/Navbar';
 import { getNationalStats, getLeaderboard, createAdmin, listAdmins, deleteAdmin } from '../utils/api';
+import { Award, CheckCircle, XCircle, Globe, ClipboardList, AlertTriangle, Map, Trash2, Droplets, Zap, BarChart, MapPin } from 'lucide-react';
 
 const SCORE_COLOR = (score) =>
   score >= 70 ? 'text-green font-bold' : score >= 50 ? 'text-amber font-bold' : 'text-burg font-bold';
@@ -12,7 +13,7 @@ const SCORE_BADGE = (rating) => ({
   Poor: 'text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block bg-burg-bg text-burg border-burg/20',
 }[rating] || 'text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block bg-off text-muted border-border');
 
-const RANK_MEDAL = (i) => ['🥇', '🥈', '🥉'][i] || <span className="text-[14px] text-muted font-bold font-mono">#{i + 1}</span>;
+const RANK_MEDAL = (i) => [<Award className="w-4 h-4 text-amber" />, <Award className="w-4 h-4 text-gray-400" />, <Award className="w-4 h-4 text-amber-700" />][i] || <span className="text-[14px] text-muted font-bold font-mono">#{i + 1}</span>;
 
 const INDIA_CENTER = [22.5937, 82.9629];
 
@@ -93,7 +94,7 @@ export default function SuperAdminDashboard() {
                Federal Oversight Level
             </div>
             <h1 className="font-serif text-[28px] font-bold text-text mb-1 flex items-center gap-[8px]">
-              🌏 National Control Center
+              <Globe size={18} className="inline mr-2" /> National Control Center
             </h1>
             <p className="text-[13px] text-muted font-medium">Super admin — pan-national orchestration and telemetry</p>
           </div>
@@ -122,10 +123,10 @@ export default function SuperAdminDashboard() {
               {loading ? (
                 [...Array(4)].map((_, i) => <div key={i} className="card h-[100px] bg-off border border-border rounded-[6px] animate-pulse" />)
               ) : [
-                { label: 'Total Nationwide', value: stats?.total_complaints?.toLocaleString(), icon: '📋', bg: 'bg-white', text: 'text-text' },
-                { label: 'Avg. Resolution', value: `${stats?.resolve_pct}%`, icon: '✅', bg: 'bg-green-bg', text: 'text-green' },
+                { label: 'Total Nationwide', value: stats?.total_complaints?.toLocaleString(), icon: <ClipboardList size={16} className="inline" />, bg: 'bg-white', text: 'text-text' },
+                { label: 'Avg. Resolution', value: `${stats?.resolve_pct}%`, icon: <CheckCircle size={16} className="inline" />, bg: 'bg-green-bg', text: 'text-green' },
                 { label: 'Mean TAT', value: `${stats?.avg_resolve_days}d`, icon: '⏱️', bg: 'bg-[#EFF6FF]', text: 'text-[#1D4ED8]' },
-                { label: 'Active Breaches', value: stats?.sla_breaches, icon: '🚨', bg: 'bg-burg-bg', text: 'text-burg', border: 'border-burg/20' },
+                { label: 'Active Breaches', value: stats?.sla_breaches, icon: <AlertTriangle size={16} className="inline text-burg" />, bg: 'bg-burg-bg', text: 'text-burg', border: 'border-burg/20' },
               ].map((s) => (
                 <div key={s.label} className={`flex flex-col gap-1 p-4 border rounded-[6px] shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all ${s.bg} ${s.border || 'border-border'}`}>
                   <div className="flex justify-between items-center mb-1">
@@ -211,12 +212,12 @@ export default function SuperAdminDashboard() {
                   </h3>
                   <div className="space-y-[14px]">
                     {deptBreakdown.map((d) => {
-                      const ICONS = { Roads: '🛣️', Sanitation: '🗑️', Water: '💧', Electricity: '⚡', Other: '📋' };
+                      const ICONS = { Roads: <Map size={16} className="inline"/>, Sanitation: <Trash2 size={16} className="inline"/>, Water: <Droplets size={16} className="inline"/>, Electricity: <Zap size={16} className="inline"/>, Other: <ClipboardList size={16} className="inline" /> };
                       const pct = stats?.total_complaints > 0 ? Math.round((d.count / stats.total_complaints) * 100) : 0;
                       return (
                         <div key={d._id}>
                           <div className="flex items-center justify-between text-[13px] mb-[6px]">
-                            <span className="font-semibold text-text flex items-center gap-2">{ICONS[d._id] || '📋'} {d._id}</span>
+                            <span className="font-semibold text-text flex items-center gap-2">{ICONS[d._id] || <ClipboardList size={16} className="inline" />} {d._id}</span>
                             <span className="text-muted font-mono font-bold text-[12px]">{d.count} <span className="opacity-60">({pct}%)</span></span>
                           </div>
                           <div className="h-[6px] bg-off rounded-full overflow-hidden border border-border/50">
@@ -270,7 +271,7 @@ export default function SuperAdminDashboard() {
         {tab === 'leaderboard' && (
           <div className="space-y-[16px] animate-fade-in">
             <div className="bg-white border border-border rounded-[6px] p-[16px] flex items-start gap-[12px]">
-               <span className="text-[20px] leading-none">📊</span>
+               <BarChart className="w-5 h-5" />
                <div>
                   <h3 className="text-[13px] font-bold text-text uppercase tracking-wider mb-[2px]">Performance Matrix</h3>
                   <p className="text-[12px] text-muted font-medium leading-[1.6]">
@@ -379,7 +380,7 @@ export default function SuperAdminDashboard() {
                 </div>
 
                 {createMsg && (
-                  <div className={`mt-[16px] p-[12px] rounded-[4px] border text-[13px] font-bold flex items-center gap-[8px] ${createMsg.startsWith('✅') ? 'bg-green-bg text-green border-green/20' : 'bg-burg-bg text-burg border-burg/20'}`}>
+                  <div className={`mt-[16px] p-[12px] rounded-[4px] border text-[13px] font-bold flex items-center gap-[8px] ${createMsg.includes('Admin profile') ? 'bg-green-bg text-green border-green/20' : 'bg-burg-bg text-burg border-burg/20'}`}>
                     {createMsg}
                   </div>
                 )}
@@ -409,7 +410,7 @@ export default function SuperAdminDashboard() {
                         <span className={`text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block ${a.role === 'super_admin' ? 'bg-[#F3E8FF] text-[#9333EA] border-[#D8B4FE]' : 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]'}`}>
                           {a.role === 'super_admin' ? 'Tier 1' : 'Tier 2'}
                         </span>
-                        {a.state && <span className="text-[11px] font-semibold text-muted flex items-center gap-1">📍 {a.state}</span>}
+                        {a.state && <span className="text-[11px] font-semibold text-muted flex items-center gap-1"><MapPin size={12} className="inline mr-1"/> {a.state}</span>}
                       </div>
                     </div>
                     <button

@@ -1,8 +1,10 @@
+import { Circle, Clock, Wrench, CheckCircle } from 'lucide-react';
+
 const STEPS = [
-  { key: 'Registered', label: 'Registered', icon: '🔵' },
-  { key: 'Under Review', label: 'Under Review', icon: '🟡' },
-  { key: 'In Progress', label: 'In Progress', icon: '🔧' },
-  { key: 'Resolved', label: 'Resolved', icon: '✅' },
+  { key: 'Registered', label: 'Registered', icon: <Circle size={16} className="text-blue-500" /> },
+  { key: 'Under Review', label: 'Under Review', icon: <Clock size={16} className="text-amber-500" /> },
+  { key: 'In Progress', label: 'In Progress', icon: <Wrench size={16} className="text-gray-500" /> },
+  { key: 'Resolved', label: 'Resolved', icon: <CheckCircle size={16} className="text-green" /> },
 ];
 
 export default function StatusTimeline({ status, statusHistory = [] }) {

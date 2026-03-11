@@ -19,7 +19,9 @@ async function sendWhatsApp(to, body) {
     return message.sid;
   } catch (err) {
     console.error('WhatsApp send error:', err.message);
-    throw err;
+    console.error('If you are using Twilio Sandbox, ensure you have opted in by sending a message to the Sandbox number first.');
+    // Fail gracefully so the app can continue working (e.g. returning dev_otp)
+    return null;
   }
 }
 
