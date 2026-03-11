@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Admin = require('../models/Admin');
 const { userAuth } = require('../middleware/auth');
+const { sendWhatsApp } = require('../utils/whatsapp');
 
 // ── Generate OTP ───────────────────────────────────────────────────────────
 function generateOTP() {
@@ -32,13 +33,16 @@ router.post('/send-otp', async (req, res) => {
     user.otp = { code: otp, expires_at };
     await user.save();
 
-    // TODO: In production, send OTP via Twilio Verify API:
-    // await twilioClient.verify.v2.services(VERIFY_SERVICE_SID).verifications.create({ to: phone, channel: 'sms' })
+    // Send OTP via WhatsApp (Twilio)
+    await sendWhatsApp(
+      phone,
+      `🔐 *Your CivicAI OTP is: ${otp}*\n\nValid for 10 minutes. Do not share this code with anyone.\n\n_CivicAI — Urban Grievance Platform_`
+    );
 
-    console.log(`OTP for ${phone}: ${otp}`); // Remove in production
+    console.log(`OTP sent via WhatsApp to ${phone}: ${otp}`);
 
     res.json({
-      message: 'OTP sent successfully',
+      message: 'OTP sent to your WhatsApp',
       // REMOVE in production — only for hackathon demo:
       dev_otp: process.env.NODE_ENV !== 'production' ? otp : undefined,
     });
