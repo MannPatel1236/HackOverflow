@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# HackOverflow
-=======
 # 🏙️ CivicAI — Multilingual Urban Grievance Intelligence Platform
 
 > Multilingual civic complaint platform with AI classification, WhatsApp bot, and real-time admin dashboards.
@@ -165,4 +162,3 @@ Then log in at `/admin/login` and create state admins from the dashboard.
 - **Backend**: Node.js, Express, MongoDB, Mongoose, Socket.io, Twilio, JWT
 - **AI Service**: FastAPI, OpenAI GPT-4o (classification), Whisper API (transcription)
 - **Infrastructure**: MongoDB Atlas, Render/Railway (backend), Vercel (frontend)
->>>>>>> 73686f6 (project)

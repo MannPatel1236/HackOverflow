@@ -5,7 +5,10 @@ import StatusTimeline from '../components/StatusTimeline';
 import { trackComplaint } from '../utils/api';
 
 const SEVERITY_COLORS = {
-  Critical: 'badge-critical', High: 'badge-high', Medium: 'badge-medium', Low: 'badge-low',
+  Critical: 'bg-burg-bg text-burg border-burg/20', 
+  High: 'bg-amber-bg text-amber border-amber/20', 
+  Medium: 'bg-blue-50 text-blue-600 border-blue-200', 
+  Low: 'bg-green-bg text-green border-green/20',
 };
 
 export default function TrackComplaint() {
@@ -53,10 +56,10 @@ export default function TrackComplaint() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-400 text-sm">Loading complaint...</p>
+          <div className="w-[40px] h-[40px] border-[3px] border-burg/30 border-t-burg rounded-full animate-spin mx-auto mb-[16px]" />
+          <p className="text-[13px] text-muted font-medium uppercase tracking-wider">Locating Grievance...</p>
         </div>
       </div>
     );
@@ -64,12 +67,12 @@ export default function TrackComplaint() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <div className="text-5xl mb-4">🔍</div>
-          <h2 className="text-xl font-bold text-white mb-2">{error}</h2>
-          <p className="text-slate-400 text-sm mb-6">Check your tracking ID and try again.</p>
-          <Link to="/" className="btn-secondary px-6 py-2">← Go Home</Link>
+      <div className="min-h-screen bg-cream flex items-center justify-center px-6">
+        <div className="text-center max-w-[400px] bg-white p-[32px] rounded-[8px] border border-border shadow-sm">
+          <div className="w-[64px] h-[64px] mx-auto bg-off rounded-full flex items-center justify-center text-[28px] mb-[16px] border border-border">🔍</div>
+          <h2 className="font-serif text-[24px] font-bold text-text mb-[8px]">{error}</h2>
+          <p className="text-[14px] text-muted leading-[1.6] mb-[24px]">We couldn't find a complaint with that tracking ID. Please verify the ID and try again.</p>
+          <Link to="/dashboard" className="btn-primary inline-flex px-[24px]">← Return to Dashboard</Link>
         </div>
       </div>
     );
@@ -78,87 +81,109 @@ export default function TrackComplaint() {
   const DEPT_ICONS = { Roads: '🛣️', Sanitation: '🗑️', Water: '💧', Electricity: '⚡', Other: '📋' };
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-cream flex flex-col">
       {/* Minimal Header */}
-      <div className="border-b border-slate-800 px-4 py-4">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">CA</span>
+      <div className="bg-white border-b border-border px-[24px] h-[60px] flex items-center justify-between shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
+        <div className="flex items-center gap-[12px]">
+          <Link to="/" className="flex items-center gap-[8px] group">
+            <div className="w-[28px] h-[28px] rounded-full border-2 border-burg relative flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-[8px] h-[8px] rounded-full bg-burg"></div>
             </div>
-            <span className="font-bold text-white">Civic<span className="text-indigo-400">AI</span></span>
+            <span className="font-serif text-[18px] text-text font-bold">Civic<span className="text-burg">AI</span></span>
           </Link>
-          <span className="text-xs text-slate-500">
-            Updated {lastUpdated.toLocaleTimeString()}
-          </span>
+          <div className="h-[20px] w-[1px] bg-border mx-[4px]"></div>
+          <span className="text-[11px] font-bold text-muted uppercase tracking-wider">Live Tracking</span>
+        </div>
+        <div className="flex items-center gap-[8px]">
+           <div className="w-[6px] h-[6px] rounded-full bg-green animate-pulse"></div>
+           <span className="text-[11px] text-muted font-medium">Last synced: {lastUpdated.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'})}</span>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-5 animate-fade-in">
+      <div className="flex-1 max-w-[760px] w-full mx-auto px-[22px] py-[32px] animate-fade-in flex flex-col gap-[20px]">
         {/* Breach alert */}
         {complaint.sla_breach && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 flex items-center gap-2">
-            <span className="text-red-400 text-lg">⚠️</span>
+          <div className="bg-burg-bg border border-burg/30 rounded-[6px] px-[16px] py-[12px] flex items-start sm:items-center gap-[12px]">
+            <span className="text-[18px] leading-none mt-0.5 sm:mt-0">⚠️</span>
             <div>
-              <p className="text-red-400 font-semibold text-sm">SLA Breached</p>
-              <p className="text-red-400/70 text-xs">This complaint has exceeded the 72-hour resolution target.</p>
+              <p className="text-burg font-bold text-[13px] uppercase tracking-wider mb-[2px]">Escalated: SLA Breached</p>
+              <p className="text-burg/80 text-[12px] font-medium leading-[1.4]">This complaint has exceeded the standard 72-hour resolution target and has been automatically escalated to higher authorities.</p>
             </div>
           </div>
         )}
 
         {/* Main Card */}
-        <div className="card p-6 space-y-6">
+        <div className="card p-[28px] bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex flex-col gap-[24px]">
+          
           {/* Header */}
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">{DEPT_ICONS[complaint.department]}</span>
-                <span className="font-mono text-indigo-400 font-bold text-lg">{complaint.tracking_id}</span>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-[16px]">
+            <div className="flex-1">
+              <div className="flex items-center gap-[10px] mb-[12px]">
+                <div className="w-[40px] h-[40px] rounded-[6px] bg-cream border border-border flex items-center justify-center text-[20px] shrink-0">
+                   {DEPT_ICONS[complaint.department]}
+                </div>
+                <div>
+                   <span className="block text-[10px] font-bold text-muted uppercase tracking-wider mb-[2px]">Tracking ID</span>
+                   <span className="font-mono bg-off px-2 py-0.5 rounded border border-border text-text font-bold text-[14px] tracking-wide inline-block">{complaint.tracking_id}</span>
+                </div>
               </div>
-              <p className="text-white text-base leading-relaxed">{complaint.summary_en}</p>
+              <p className="font-serif text-[18px] text-text font-bold leading-[1.4]">{complaint.summary_en}</p>
             </div>
           </div>
 
+          <div className="h-[1px] w-full bg-border/60"></div>
+
           {/* Details Grid */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-[20px] gap-x-[16px]">
             {[
-              { label: 'Department', value: complaint.department },
-              { label: 'Channel', value: complaint.channel === 'whatsapp' ? '📱 WhatsApp' : '🌐 Web' },
-              { label: 'Severity', value: (
-                <span className={`badge ${SEVERITY_COLORS[complaint.severity]}`}>{complaint.severity}</span>
+              { label: 'Assigned Dept.', value: complaint.department },
+              { label: 'Reported Via', value: complaint.channel === 'whatsapp' ? '📱 WhatsApp' : '🌐 Web Portal' },
+              { label: 'System Severity', value: (
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block ${SEVERITY_COLORS[complaint.severity]}`}>{complaint.severity}</span>
               )},
-              { label: 'ETA', value: `${complaint.eta_days} days` },
+              { label: 'Target ETA', value: `${complaint.eta_days} Days` },
               { label: 'Location', value: [complaint.district, complaint.state].filter(Boolean).join(', ') || 'Not specified' },
-              { label: 'Filed On', value: new Date(complaint.filed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) },
+              { label: 'Date Filed', value: new Date(complaint.filed_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) },
             ].map((item) => (
               <div key={item.label}>
-                <p className="text-xs text-slate-500 mb-0.5">{item.label}</p>
-                <p className="text-sm text-slate-200 font-medium">{item.value}</p>
+                <p className="text-[11px] font-bold text-muted uppercase tracking-wider mb-[4px]">{item.label}</p>
+                <div className="text-[13px] text-text font-semibold">{item.value}</div>
               </div>
             ))}
           </div>
 
           {/* Status Timeline */}
-          <div>
-            <h3 className="text-sm font-semibold text-slate-300 mb-4">Resolution Progress</h3>
-            <StatusTimeline status={complaint.status} statusHistory={complaint.status_history} />
+          <div className="pt-[24px] border-t border-border/80">
+            <h3 className="text-[13px] font-bold text-text uppercase tracking-wider mb-[20px] flex items-center gap-[8px]">
+               <span className="w-[12px] h-[2px] bg-burg"></span> Resolution Status
+            </h3>
+            <div className="px-[10px]">
+               <StatusTimeline status={complaint.status} statusHistory={complaint.status_history} />
+            </div>
           </div>
 
-          {/* History */}
+          {/* History Log */}
           {complaint.status_history?.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold text-slate-300 mb-3">Activity Log</h3>
-              <div className="space-y-2">
-                {[...complaint.status_history].reverse().map((h, i) => (
-                  <div key={i} className="flex items-start gap-3 text-sm">
-                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
-                    <div className="flex-1">
-                      <span className="text-slate-300 font-medium">{h.status}</span>
-                      {h.note && <span className="text-slate-500"> — {h.note}</span>}
+            <div className="pt-[24px] border-t border-border/80">
+              <h3 className="text-[13px] font-bold text-text uppercase tracking-wider mb-[16px] flex items-center gap-[8px]">
+                 <span className="w-[12px] h-[2px] bg-burg"></span> Activity Log
+              </h3>
+              <div className="flex flex-col gap-[16px]">
+                {[...complaint.status_history].reverse().map((h, i, arr) => (
+                  <div key={i} className="flex items-start gap-[14px] relative">
+                    {i !== arr.length - 1 && (
+                      <div className="absolute left-[5px] top-[14px] bottom-[-20px] w-[1px] bg-border z-0"></div>
+                    )}
+                    <div className={`w-[11px] h-[11px] rounded-full mt-[4px] shrink-0 z-10 border-2 border-white ${i === 0 ? 'bg-burg shadow-[0_0_0_2px_rgba(139,26,26,0.2)]' : 'bg-muted/50'}`} />
+                    <div className="flex-1 flex flex-col sm:flex-row sm:items-start justify-between gap-[4px] sm:gap-[16px]">
+                      <div>
+                        <span className={`text-[13px] ${i === 0 ? 'font-bold text-text' : 'font-medium text-muted'}`}>{h.status}</span>
+                        {h.note && <p className="text-[12px] text-muted leading-[1.6] mt-[2px] bg-cream p-[8px] rounded-[4px] border border-border inline-block">{h.note}</p>}
+                      </div>
+                      <span className="text-[11px] text-muted font-medium shrink-0 pt-[2px]">
+                        {new Date(h.timestamp).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
-                    <span className="text-slate-600 text-xs shrink-0">
-                      {new Date(h.timestamp).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                    </span>
                   </div>
                 ))}
               </div>
@@ -166,26 +191,27 @@ export default function TrackComplaint() {
           )}
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-3">
-          <Link to="/" className="btn-secondary flex-1 py-2.5 text-center text-sm">
-            ← Home
+        {/* Actions Bottom */}
+        <div className="flex flex-col sm:flex-row gap-[12px] pt-[8px]">
+          <Link to="/dashboard" className="btn-ghost flex-1 py-[14px] text-center text-[13px] font-bold border border-border bg-white hover:border-text hover:text-text">
+            ← Back to Dashboard
           </Link>
           <button
             onClick={() => {
               const number = import.meta.env.VITE_WHATSAPP_NUMBER || '14155238886';
               window.open(`https://wa.me/${number}?text=STATUS%20${complaint.tracking_id}`, '_blank');
             }}
-            className="btn-secondary flex-1 py-2.5 text-sm flex items-center justify-center gap-2"
+            className="flex-1 py-[14px] text-[13px] font-bold flex items-center justify-center gap-[8px] bg-[#25D366] hover:bg-[#20bd5a] text-white border-none rounded-[5px] transition-colors cursor-pointer shadow-[0_2px_8px_rgba(37,211,102,0.2)]"
           >
-            <span>📱</span>
-            Check on WhatsApp
+            <span className="text-[16px] leading-none">📱</span> Receive WhatsApp Updates
           </button>
         </div>
 
-        <p className="text-center text-xs text-slate-600">
-          This page updates automatically. Share this link to let others track this complaint.
+        <p className="text-center text-[11px] text-muted font-medium flex items-center justify-center gap-[6px] mt-[4px]">
+          <span className="w-[8px] h-[8px] rounded-full bg-green animate-pulse inline-block"></span>
+          Page updates dynamically in real-time. Share URL to let others track.
         </p>
+
       </div>
     </div>
   );

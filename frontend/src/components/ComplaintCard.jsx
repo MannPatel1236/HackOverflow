@@ -1,17 +1,17 @@
 import { Link } from 'react-router-dom';
 
 const SEVERITY_STYLES = {
-  Critical: 'badge-critical',
-  High: 'badge-high',
-  Medium: 'badge-medium',
-  Low: 'badge-low',
+  Critical: 'bg-burg-bg text-burg border-burg/20',
+  High: 'bg-amber-bg text-amber border-amber/20',
+  Medium: 'bg-blue-50 text-blue-600 border-blue-200',
+  Low: 'bg-green-bg text-green border-green/20',
 };
 
 const STATUS_STYLES = {
-  Registered: 'status-registered',
-  'Under Review': 'status-review',
-  'In Progress': 'status-progress',
-  Resolved: 'status-resolved',
+  Registered: 'bg-dim/10 text-muted border-dim/20',
+  'Under Review': 'bg-amber-bg text-amber border-amber/20',
+  'In Progress': 'bg-blue-50 text-blue-600 border-blue-200',
+  Resolved: 'bg-green-bg text-green border-green/20',
 };
 
 const DEPT_ICONS = {
@@ -29,55 +29,60 @@ export default function ComplaintCard({ complaint, showActions, onStatusChange }
   });
 
   return (
-    <div className={`card p-4 hover:border-slate-700 transition-all duration-200 ${
-      complaint.sla_breach ? 'border-red-500/30 bg-red-500/5' : ''
+    <div className={`card p-[16px] flex flex-col md:flex-row md:items-center justify-between gap-[16px] transition-all duration-200 ${
+      complaint.sla_breach ? 'border-burg bg-burg-bg/50' : 'hover:border-burg hover:shadow-[0_4px_16px_rgba(139,26,26,0.06)]'
     }`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 flex-1 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-lg shrink-0">
-            {deptIcon}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2 mb-1">
-              <span className="font-mono text-xs text-indigo-400 font-medium">
-                {complaint.tracking_id}
-              </span>
-              <span className={SEVERITY_STYLES[complaint.severity] || 'badge'}>
-                {complaint.severity}
-              </span>
-              <span className={STATUS_STYLES[complaint.status] || 'badge'}>
-                {complaint.status}
-              </span>
-              {complaint.sla_breach && (
-                <span className="badge bg-red-500/20 text-red-400 border border-red-500/30">
-                  ⚠️ SLA Breach
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-slate-300 truncate">{complaint.summary_en}</p>
-            <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500">
-              <span>{complaint.department}</span>
-              {complaint.district && <span>📍 {complaint.district}, {complaint.state}</span>}
-              <span>{filed}</span>
-            </div>
-          </div>
+      
+      <div className="flex items-start gap-[14px] flex-1 min-w-0">
+        <div className="w-[44px] h-[44px] rounded-[6px] bg-cream border border-border flex items-center justify-center text-[22px] shrink-0 shadow-sm">
+          {deptIcon}
         </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Link
-            to={`/track/${complaint.tracking_id}`}
-            className="text-xs text-indigo-400 hover:text-indigo-300 px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 transition-colors"
-          >
-            Track
-          </Link>
-          {showActions && onStatusChange && (
-            <StatusDropdown
-              current={complaint.status}
-              onChange={(status) => onStatusChange(complaint._id, status)}
-            />
-          )}
+        
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-[8px] mb-[6px] flex-wrap">
+             <span className="font-mono text-[11px] font-bold text-text bg-off px-2 py-0.5 rounded-[4px] border border-border">
+                {complaint.tracking_id}
+             </span>
+             <span className={`text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded-[3px] border ${SEVERITY_STYLES[complaint.severity] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                {complaint.severity}
+             </span>
+             <span className={`text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded-[3px] border ${STATUS_STYLES[complaint.status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                {complaint.status}
+             </span>
+             {complaint.sla_breach && (
+                <span className="ml-auto md:ml-0 text-[10px] font-bold text-white bg-burg px-[6px] py-[2px] rounded-[3px] uppercase tracking-wider flex items-center gap-1">
+                   ⚠️ Breach
+                </span>
+             )}
+          </div>
+          <h3 className="text-[14px] font-bold text-text truncate mb-[4px]">
+             {complaint.summary_en || 'Complaint Summary Pending'}
+          </h3>
+          <div className="flex items-center gap-[12px] text-[11px] text-muted font-medium">
+             <span className="flex items-center gap-1">🏢 {complaint.department}</span>
+             {complaint.district && <span className="flex items-center gap-1">📍 {complaint.district}, {complaint.state}</span>}
+             <span className="flex items-center gap-1">🕒 {filed}</span>
+          </div>
         </div>
       </div>
+
+      <div className="flex items-center gap-[12px] shrink-0 w-full md:w-auto mt-2 md:mt-0 pt-3 md:pt-0 border-t border-border md:border-t-0">
+         <Link
+            to={`/track/${complaint.tracking_id}`}
+            className="flex-1 md:flex-none text-center text-[12px] font-bold text-text bg-cream hover:bg-off border border-border rounded-[5px] px-[14px] py-[8px] transition-colors"
+          >
+            Track Details ↗
+         </Link>
+         {showActions && onStatusChange && (
+            <div className="flex-1 md:flex-none">
+              <StatusDropdown
+                current={complaint.status}
+                onChange={(status) => onStatusChange(complaint._id, status)}
+              />
+            </div>
+         )}
+      </div>
+
     </div>
   );
 }
@@ -88,7 +93,13 @@ function StatusDropdown({ current, onChange }) {
     <select
       value={current}
       onChange={(e) => onChange(e.target.value)}
-      className="text-xs bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:border-indigo-500 cursor-pointer"
+      className="w-full text-[12px] font-semibold bg-white border border-border text-text rounded-[5px] px-[10px] py-[8px] focus:outline-none focus:border-burg cursor-pointer appearance-none shadow-sm"
+      style={{
+        backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2212%22%20height%3D%228%22%20viewBox%3D%220%200%2012%208%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M1.41%200.589966L6%205.16997L10.59%200.589966L12%201.99997L6%207.99997L0%201.99997L1.41%200.589966Z%22%20fill%3D%22%231A1A1A%22%2F%3E%3C%2Fsvg%3E")',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 10px center',
+        backgroundSize: '10px'
+      }}
     >
       {statuses.map((s) => (
         <option key={s} value={s}>{s}</option>

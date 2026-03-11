@@ -7,57 +7,60 @@
     box-sizing: border-box;
   }
   body {
-    @apply bg-slate-950 text-slate-100 font-sans antialiased;
-    background-image: 
-      radial-gradient(ellipse at 20% 50%, rgba(79, 70, 229, 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%);
+    @apply bg-cream text-text font-sans antialiased overflow-x-hidden;
+    /* Removed the dark background gradient, keeping it simple as per target */
     min-height: 100vh;
+  }
+  
+  /* Adding headings styles */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif text-text;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-5 py-2.5 rounded-xl 
-           transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
-           shadow-lg shadow-indigo-900/30;
+    @apply bg-burg hover:bg-burg-2 text-white font-semibold px-6 py-3 rounded text-sm
+           transition-all duration-200 shadow-btn hover:-translate-y-[1px]
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .btn-secondary {
-    @apply bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-medium
-           px-5 py-2.5 rounded-xl transition-all duration-200 active:scale-95;
+    @apply bg-transparent hover:border-burg text-text hover:text-burg border border-border font-medium
+           px-5 py-[11px] rounded text-sm transition-all duration-200;
   }
   .btn-ghost {
-    @apply hover:bg-slate-800 text-slate-400 hover:text-slate-200 font-medium px-4 py-2 rounded-lg transition-all duration-200;
+    @apply hover:bg-slate-100/50 text-muted hover:text-text font-medium px-4 py-2 rounded transition-all duration-200;
   }
   .card {
-    @apply bg-slate-900/70 border border-slate-800 rounded-2xl backdrop-blur-sm;
+    @apply bg-white border border-border rounded-md hover:-translate-y-[3px] hover:shadow-card-hover transition-all duration-300;
   }
   .input {
-    @apply w-full bg-slate-800/60 border border-slate-700 rounded-xl px-4 py-3 text-slate-100
-           placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 
-           focus:ring-indigo-500/50 transition-all duration-200;
+    @apply w-full bg-cream border-[1.5px] border-border rounded px-3 py-2 text-text text-sm font-sans
+           placeholder:text-muted focus:outline-none focus:border-burg focus:ring-1 
+           focus:ring-burg/20 transition-all duration-200;
   }
   .badge {
-    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    @apply inline-flex items-center gap-1 px-2 py-[2px] rounded-sm text-[9px] font-bold tracking-widest uppercase;
   }
-  .badge-critical { @apply badge bg-red-500/20 text-red-400 border border-red-500/30; }
-  .badge-high { @apply badge bg-orange-500/20 text-orange-400 border border-orange-500/30; }
-  .badge-medium { @apply badge bg-yellow-500/20 text-yellow-400 border border-yellow-500/30; }
-  .badge-low { @apply badge bg-green-500/20 text-green-400 border border-green-500/30; }
+  .badge-critical { @apply badge bg-burg-bg text-burg; }
+  .badge-high { @apply badge bg-amber-bg text-amber; }
+  .badge-medium { @apply badge bg-blue-50 text-blue-700; }
+  .badge-low { @apply badge bg-green-bg text-green; }
   
-  .status-registered { @apply badge bg-slate-700/60 text-slate-300 border border-slate-600; }
-  .status-review { @apply badge bg-yellow-500/20 text-yellow-400 border border-yellow-500/30; }
-  .status-progress { @apply badge bg-blue-500/20 text-blue-400 border border-blue-500/30; }
-  .status-resolved { @apply badge bg-green-500/20 text-green-400 border border-green-500/30; }
+  .status-registered { @apply px-2.5 py-1 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-700; }
+  .status-review { @apply px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700; }
+  .status-progress { @apply px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-bg text-amber; }
+  .status-resolved { @apply px-2.5 py-1 rounded-full text-[10px] font-semibold bg-green-bg text-green; }
 
   .stat-card {
-    @apply card p-5 flex flex-col gap-1;
+    @apply bg-white p-6 text-center border-r border-border last:border-r-0 flex flex-col items-center justify-center;
   }
 }
 
 /* Leaflet map overrides */
 .leaflet-container {
-  background: #0f172a !important;
-  border-radius: 1rem;
+  background: #f8f7f3 !important;
+  border-radius: 6px;
 }
 .leaflet-tile-pane {
   filter: brightness(0.7) saturate(0.5);

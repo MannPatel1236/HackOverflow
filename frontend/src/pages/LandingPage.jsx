@@ -25,112 +25,199 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-cream flex flex-col">
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-20 pb-28">
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-600/10 rounded-full blur-3xl" />
-        </div>
-
-        <div className="max-w-4xl mx-auto text-center animate-fade-in">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 text-sm font-medium mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-            Multilingual Urban Grievance Platform
+      {/* Hero Section */}
+      <section className="bg-white grid grid-cols-1 md:grid-cols-2 border-b border-border">
+        <div className="px-6 md:px-12 py-12 md:py-20 flex flex-col justify-center">
+          <div className="text-[10px] font-bold tracking-[3px] uppercase text-burg mb-[14px] flex items-center gap-[10px] before:content-[''] before:w-5 before:h-[2px] before:bg-burg">
+            Welcome to the
           </div>
-
-          <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight text-white mb-6 leading-tight">
-            Your City.<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">
-              Your Voice.
-            </span>
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-[clamp(28px,3.2vw,48px)] font-black leading-[1.1] text-text mb-[18px]">
+            <em className="italic text-burg not-italic:font-serif">Official CivicAI</em><br/>
+            Government<br/>
+            Grievance Platform
           </h1>
-
-          <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            File civic complaints in any Indian language via WhatsApp or web. 
-            AI classifies and routes instantly. Track resolution in real time.
+          <p className="text-[14px] text-muted leading-[1.8] max-w-[390px] mb-[28px]">
+            CivicAI empowers every Indian citizen to report urban issues in their native language — via voice, text, or WhatsApp. AI routes complaints instantly to the right municipal department.
           </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              onClick={openWhatsApp}
-              className="btn-primary text-base px-8 py-3 flex items-center gap-2.5"
-            >
-              <span className="text-xl">📱</span>
-              File via WhatsApp
-            </button>
-            <Link
-              to="/login"
-              className="btn-secondary text-base px-8 py-3 flex items-center gap-2"
-            >
-              File on Website
-              <span className="text-slate-500">→</span>
+          <div className="flex gap-[12px]">
+            <Link to="/login" className="btn-primary">
+              Register / Sign Up
+            </Link>
+            <Link to="/file-complaint" className="btn-ghost border border-border bg-transparent text-text hover:border-burg hover:text-burg">
+              File Complaint 📝
             </Link>
           </div>
+        </div>
+        
+        {/* Right side graphical hero */}
+        <div className="bg-cream relative overflow-hidden flex items-center justify-center min-h-[380px] hidden md:flex">
+           <div className="absolute inset-0 flex items-center justify-center opacity-20">
+             {/* Abstract Map Graphic */}
+            <svg viewBox="0 0 300 340" width="340" height="340">
+              <defs>
+                <pattern id="dotpat" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <circle cx="5" cy="5" r="1.5" fill="#8B1A1A"/>
+                </pattern>
+                <mask id="indiamask">
+                  <path d="M148 20 L175 28 L205 48 L228 72 L248 100 L260 130 L258 162 L248 190 L232 216 L210 240 L188 262 L166 282 L148 298 L130 282 L108 262 L86 240 L64 216 L48 190 L38 162 L36 130 L48 100 L68 72 L91 48 L121 28 Z" fill="white"/>
+                </mask>
+              </defs>
+              <rect width="300" height="340" fill="url(#dotpat)" mask="url(#indiamask)"/>
+              <circle cx="148" cy="195" r="5" fill="#8B1A1A" opacity="0.8"/>
+              <circle cx="148" cy="195" r="9" fill="none" stroke="#8B1A1A" strokeWidth="1.5" opacity="0.4"/>
+              <circle cx="160" cy="135" r="4" fill="#8B1A1A" opacity="0.7"/>
+              <circle cx="190" cy="210" r="4" fill="#8B1A1A" opacity="0.7"/>
+              <circle cx="168" cy="260" r="4" fill="#8B1A1A" opacity="0.7"/>
+            </svg>
+          </div>
+          <div className="absolute bottom-[28px] left-[32px] font-serif text-[18px] font-bold text-text z-10">
+            Welcome to <span className="text-burg italic">India!</span>
+          </div>
+        </div>
+      </section>
 
-          <p className="mt-4 text-sm text-slate-600">
-            No app download • Works in Hindi, Tamil, Marathi, Telugu, Bengali & more
-          </p>
+      {/* DASHBOARD STATS */}
+      <section className="bg-white border-b border-border py-16 px-6 md:px-12">
+        <div className="text-[10px] font-bold tracking-[3px] uppercase text-burg mb-2 flex items-center gap-[10px] before:content-[''] before:w-6 before:h-[2px] before:bg-burg">
+          Dashboard
+        </div>
+        <h2 className="font-serif text-[30px] font-bold leading-[1.2] text-text">Platform at a Glance</h2>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 border border-border rounded-md overflow-hidden mt-9">
+          <div className="stat-card">
+            <div className="font-serif text-[38px] font-black leading-none text-burg">4.2L<span className="text-[18px]">+</span></div>
+            <div className="text-[12px] font-semibold text-text mt-[5px]">Complaints Filed</div>
+            <div className="text-[10px] text-muted mt-[2px]">Nationwide total</div>
+            <div className="w-full h-[3px] bg-border rounded-sm mt-3 overflow-hidden">
+              <div className="h-full bg-burg rounded-sm w-[92%] animate-[barIn_1.2s_ease_both]"></div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="font-serif text-[38px] font-black leading-none text-green">840<span className="text-[18px]">+</span></div>
+            <div className="text-[12px] font-semibold text-text mt-[5px]">Municipalities</div>
+            <div className="text-[10px] text-muted mt-[2px]">Onboarded cities</div>
+            <div className="w-full h-[3px] bg-border rounded-sm mt-3 overflow-hidden">
+              <div className="h-full bg-green rounded-sm w-[65%] animate-[barIn_1.2s_ease_both]"></div>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="font-serif text-[38px] font-black leading-none text-amber">48<span className="text-[18px]">hr</span></div>
+            <div className="text-[12px] font-semibold text-text mt-[5px]">Avg Resolution</div>
+            <div className="text-[10px] text-muted mt-[2px]">Down from 28 days</div>
+            <div className="w-full h-[3px] bg-border rounded-sm mt-3 overflow-hidden">
+              <div className="h-full bg-amber rounded-sm w-[78%] animate-[barIn_1.2s_ease_both]"></div>
+            </div>
+          </div>
+          <div className="stat-card border-r-0">
+            <div className="font-serif text-[38px] font-black leading-none text-burg">22<span className="text-[18px]">+</span></div>
+            <div className="text-[12px] font-semibold text-text mt-[5px]">Languages</div>
+            <div className="text-[10px] text-muted mt-[2px]">All Indian languages</div>
+            <div className="w-full h-[3px] bg-border rounded-sm mt-3 overflow-hidden">
+              <div className="h-full bg-burg rounded-sm w-[88%] animate-[barIn_1.2s_ease_both]"></div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* How it works */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-white mb-3">How it works</h2>
-          <p className="text-slate-400">From complaint to resolution in 4 steps</p>
+      <section className="bg-cream py-16 px-6 md:px-12 border-b border-border relative overflow-hidden">
+        <div className="absolute right-[-30px] top-1/2 -translate-y-1/2 font-serif text-[180px] font-black text-black/5 pointer-events-none whitespace-nowrap tracking-[-6px] leading-none select-none">
+          AI
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="relative z-10">
+          <div className="text-[10px] font-bold tracking-[3px] uppercase text-burg mb-2 flex items-center gap-[10px] before:content-[''] before:w-6 before:h-[2px] before:bg-burg">
+            Process
+          </div>
+          <h2 className="font-serif text-[30px] font-bold leading-[1.2] text-text">From Complaint to Resolution</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-4 mt-14 relative">
+           <div className="hidden md:block absolute top-[33px] left-[10%] right-[10%] h-[1px] bg-gradient-to-r from-burg via-amber to-green z-0"></div>
           {STEPS.map((s, i) => (
-            <div key={i} className="card p-6 relative group hover:border-indigo-500/40 transition-all">
-              <div className="font-mono text-4xl font-bold text-slate-800 mb-4 group-hover:text-indigo-900 transition-colors">
+            <div key={i} className="flex flex-col items-center text-center px-2 relative z-10 group">
+              <div className="w-[66px] h-[66px] rounded-full bg-white border border-border flex items-center justify-center font-bold text-[22px] text-burg mb-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] group-hover:border-burg group-hover:shadow-[0_6px_24px_rgba(139,26,26,0.18)] group-hover:scale-[1.07] transition-all duration-250">
                 {s.step}
               </div>
-              <h3 className="font-bold text-white text-lg mb-2">{s.title}</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">{s.desc}</p>
+              <h3 className="text-[13px] font-bold text-text mb-1">{s.title}</h3>
+              <p className="text-[11px] text-muted leading-[1.55] max-w-[200px]">{s.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Features */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-24">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-white mb-3">Built for impact</h2>
-          <p className="text-slate-400">Every feature designed to bridge the civic disconnect</p>
+      <section className="bg-white py-16 px-6 md:px-12 border-b border-border">
+        <div className="mb-10 text-center flex flex-col items-center">
+           <div className="text-[10px] font-bold tracking-[3px] uppercase text-burg mb-2 flex items-center gap-[10px] before:content-[''] before:w-6 before:h-[2px] before:bg-burg after:content-[''] after:w-6 after:h-[2px] after:bg-burg">
+            Key Features
+          </div>
+          <h2 className="font-serif text-[30px] font-bold leading-[1.2] text-text max-w-lg">
+            Built for impact and transparency
+          </h2>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px]">
           {FEATURES.map((f, i) => (
-            <div key={i} className="card p-6 hover:border-slate-700 transition-all group">
-              <div className="text-3xl mb-4">{f.icon}</div>
-              <h3 className="font-semibold text-white mb-2">{f.title}</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
+            <div key={i} className="card p-[22px] flex flex-col gap-2">
+              <div className="text-[26px]">{f.icon}</div>
+              <h3 className="text-[14px] font-bold text-text">{f.title}</h3>
+              <p className="text-[12px] text-muted leading-[1.6]">{f.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="border-t border-slate-800 py-20">
+      {/* CTA Layer */}
+      <section className="bg-cream py-16 border-b border-border">
         <div className="max-w-3xl mx-auto text-center px-4">
-          <h2 className="text-4xl font-bold text-white mb-4">Ready to make your city better?</h2>
-          <p className="text-slate-400 mb-8">
-            Join thousands of citizens making their voices heard.
+          <h2 className="font-serif text-3xl font-bold text-text mb-4">Ready to make your city better?</h2>
+          <p className="text-muted text-sm mb-8">
+            Join thousands of citizens making their voices heard across India.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button onClick={openWhatsApp} className="btn-primary px-8 py-3 text-base">
-              📱 Start on WhatsApp
+            <button onClick={openWhatsApp} className="btn-primary flex items-center justify-center gap-2">
+              <span className="text-lg">📱</span> File on WhatsApp
             </button>
-            <Link to="/login" className="btn-secondary px-8 py-3 text-base">
+            <Link to="/login" className="btn-secondary">
               Sign up on Web
             </Link>
           </div>
         </div>
       </section>
 
-      <footer className="border-t border-slate-800/50 py-8 text-center text-sm text-slate-600">
-        CivicAI — Multilingual Urban Grievance Intelligence Platform
+      {/* Footer */}
+      <footer className="footer bg-navy pt-10 pb-5 px-6 md:px-12 flex-1 mt-auto">
+         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-8 border-b border-white/10">
+            <div>
+               <div className="font-serif text-[18px] text-white mb-[7px]">CivicAI</div>
+               <p className="text-[12px] text-white/30 leading-[1.7] max-w-[220px]">
+                 Multilingual Urban Grievance Intelligence Platform for modern India.
+               </p>
+            </div>
+            <div>
+               <div className="text-[9px] font-bold tracking-[2px] uppercase text-white/25 mb-[12px]">Portals</div>
+               <div className="flex flex-col gap-2">
+                  <Link to="/login" className="text-[12px] text-white/40 hover:text-white transition-colors">Citizen Portal</Link>
+                  <Link to="/admin/login" className="text-[12px] text-white/40 hover:text-white transition-colors">Official Dashboard</Link>
+               </div>
+            </div>
+            <div>
+               <div className="text-[9px] font-bold tracking-[2px] uppercase text-white/25 mb-[12px]">Legal</div>
+               <div className="flex flex-col gap-2">
+                  <span className="text-[12px] text-white/40 cursor-default">Privacy Policy</span>
+                  <span className="text-[12px] text-white/40 cursor-default">Terms of Service</span>
+               </div>
+            </div>
+         </div>
+         <div className="flex justify-between items-center pt-[18px]">
+            <div className="text-[10px] text-white/20">© 2026 CivicAI India</div>
+            <div className="flex rounded-[2px] overflow-hidden">
+               <div className="h-[10px] w-[20px] bg-[#FF9933]"></div>
+               <div className="h-[10px] w-[20px] bg-white"></div>
+               <div className="h-[10px] w-[20px] bg-[#138808]"></div>
+            </div>
+         </div>
       </footer>
     </div>
   );

@@ -30,77 +30,115 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-cream flex flex-col">
       <Navbar />
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-white">
-              Welcome back{user?.name ? `, ${user.name}` : ''} 👋
-            </h1>
-            <p className="text-slate-400 mt-1 text-sm">{user?.phone}</p>
-          </div>
-          <div className="flex gap-3">
-            <button onClick={openWhatsApp} className="btn-secondary text-sm flex items-center gap-2">
-              <span>📱</span> WhatsApp
-            </button>
-            <Link to="/file-complaint" className="btn-primary text-sm">
-              + File Complaint
-            </Link>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: 'Total Filed', value: stats.total, icon: '📋', color: 'text-slate-300' },
-            { label: 'Resolved', value: stats.resolved, icon: '✅', color: 'text-green-400' },
-            { label: 'Pending', value: stats.pending, icon: '⏳', color: 'text-yellow-400' },
-            { label: 'SLA Breach', value: stats.breach, icon: '⚠️', color: 'text-red-400' },
-          ].map((s) => (
-            <div key={s.label} className="stat-card">
-              <div className="flex items-center gap-2 text-slate-500 text-xs font-medium">
-                <span>{s.icon}</span>
-                {s.label}
+      <div className="flex-1 flex flex-col lg:flex-row w-full max-w-[1240px] mx-auto px-[22px] py-[28px] gap-[24px]">
+        
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col gap-[24px]">
+          
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+            <div>
+              <div className="text-[10px] font-bold tracking-[3px] uppercase text-burg mb-2 flex items-center gap-[10px] before:content-[''] before:w-6 before:h-[2px] before:bg-burg">
+                 Citizen Portal
               </div>
-              <p className={`text-3xl font-bold ${s.color}`}>{s.value}</p>
+              <h1 className="font-serif text-[28px] font-bold text-text mb-1">
+                Welcome back{user?.name ? `, ${user.name}` : ''}
+              </h1>
+              <p className="text-[13px] text-muted">{user?.phone || 'No phone number provided'}</p>
             </div>
-          ))}
-        </div>
-
-        {/* Track Quick Search */}
-        <div className="card p-5 mb-6">
-          <TrackQuickSearch />
-        </div>
-
-        {/* Complaints List */}
-        <div>
-          <h2 className="text-lg font-semibold text-white mb-4">Your Complaints</h2>
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="card p-4 animate-pulse h-20 bg-slate-800/50" />
-              ))}
-            </div>
-          ) : complaints.length === 0 ? (
-            <div className="card p-12 text-center">
-              <div className="text-5xl mb-4">📭</div>
-              <h3 className="text-lg font-semibold text-white mb-2">No complaints yet</h3>
-              <p className="text-slate-400 text-sm mb-6">
-                File your first complaint and track its resolution in real time.
-              </p>
-              <Link to="/file-complaint" className="btn-primary inline-flex">
-                File First Complaint
+            <div className="flex gap-[10px] shrink-0">
+              <button onClick={openWhatsApp} className="bg-[#25D366] hover:bg-[#20bd5a] text-white border-none rounded-[5px] px-[14px] py-[8px] text-[12px] font-semibold flex items-center gap-[6px] transition-colors cursor-pointer shadow-[0_2px_8px_rgba(37,211,102,0.2)]">
+                <span className="text-base leading-none">📱</span> File on WhatsApp
+              </button>
+              <Link to="/file-complaint" className="btn-primary text-[12px] px-[14px] py-[8px] shadow-[0_2px_8px_rgba(139,26,26,0.2)]">
+                + File Complaint
               </Link>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {complaints.map((c) => (
-                <ComplaintCard key={c._id || c.tracking_id} complaint={c} />
-              ))}
+          </div>
+
+          {/* Stats Overview */}
+          <div className="card p-[22px]">
+            <h2 className="text-[14px] font-bold text-text mb-[16px]">Overview</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-[16px]">
+              
+              <div className="flex flex-col gap-1 p-3 border border-border rounded-[6px] bg-white">
+                <div className="flex justify-between items-center mb-1">
+                   <div className="text-[11px] font-bold text-muted uppercase tracking-wider">Total Filed</div>
+                   <div className="opacity-50 text-[14px]">📋</div>
+                </div>
+                <div className="font-serif text-[28px] font-black text-burg leading-none">{stats.total}</div>
+                <div className="text-[10px] text-muted">All active complaints</div>
+              </div>
+
+              <div className="flex flex-col gap-1 p-3 border border-border rounded-[6px] bg-green-bg">
+                <div className="flex justify-between items-center mb-1">
+                   <div className="text-[11px] font-bold text-green uppercase tracking-wider">Resolved</div>
+                   <div className="opacity-50 text-[14px]">✅</div>
+                </div>
+                <div className="font-serif text-[28px] font-black text-green leading-none">{stats.resolved}</div>
+                <div className="text-[10px] text-green/70">Successfully closed</div>
+              </div>
+
+              <div className="flex flex-col gap-1 p-3 border border-border rounded-[6px] bg-amber-bg">
+                <div className="flex justify-between items-center mb-1">
+                   <div className="text-[11px] font-bold text-amber uppercase tracking-wider">Pending</div>
+                   <div className="opacity-50 text-[14px]">⏳</div>
+                </div>
+                <div className="font-serif text-[28px] font-black text-amber leading-none">{stats.pending}</div>
+                <div className="text-[10px] text-amber/70">Awaiting action</div>
+              </div>
+
+              <div className="flex flex-col gap-1 p-3 border border-burg/20 rounded-[6px] bg-burg-bg">
+                <div className="flex justify-between items-center mb-1">
+                   <div className="text-[11px] font-bold text-burg uppercase tracking-wider">SLA Breach</div>
+                   <div className="opacity-50 text-[14px]">⚠️</div>
+                </div>
+                <div className="font-serif text-[28px] font-black text-burg leading-none">{stats.breach}</div>
+                <div className="text-[10px] text-burg/70">Overdue response</div>
+              </div>
+
             </div>
-          )}
+          </div>
+
+          {/* Track Quick Search */}
+          <div className="card p-[22px]">
+             <TrackQuickSearch />
+          </div>
+
+          {/* Complaints List */}
+          <div>
+            <div className="flex items-center justify-between mb-[16px]">
+               <h2 className="text-[16px] font-bold text-text">Your Recent Complaints</h2>
+            </div>
+            {loading ? (
+              <div className="flex flex-col gap-[12px]">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="card p-[20px] h-[100px] animate-pulse bg-gray-100 border-border" />
+                ))}
+              </div>
+            ) : complaints.length === 0 ? (
+              <div className="card p-[40px] flex flex-col items-center justify-center text-center border-dashed border-2 border-border/60 bg-white/50">
+                <div className="w-[60px] h-[60px] rounded-full bg-cream border border-border flex items-center justify-center text-[28px] mb-[16px] shadow-sm">
+                  📭
+                </div>
+                <h3 className="text-[16px] font-bold text-text mb-[6px]">No complaints filed yet</h3>
+                <p className="text-[13px] text-muted mb-[20px] max-w-[300px]">
+                  Use the platform to report civic issues in your area. You can track their status here.
+                </p>
+                <Link to="/file-complaint" className="btn-primary">
+                  File First Complaint
+                </Link>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-[12px]">
+                {complaints.map((c) => (
+                  <ComplaintCard key={c._id || c.tracking_id} complaint={c} />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -117,19 +155,26 @@ function TrackQuickSearch() {
   };
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-col sm:flex-row sm:items-end gap-[14px]">
       <div className="flex-1">
-        <p className="text-sm font-medium text-slate-300 mb-1.5">Track a complaint</p>
-        <input
-          type="text"
-          value={id}
-          onChange={(e) => setId(e.target.value)}
-          placeholder="CIV-ABC-123"
-          className="input font-mono"
-          onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
-        />
+        <label className="block text-[11px] font-bold text-text uppercase tracking-wider mb-[6px]">Track a Specific Complaint</label>
+        <div className="flex">
+           <input
+             type="text"
+             value={id}
+             onChange={(e) => setId(e.target.value)}
+             placeholder="CIV-ABC-123"
+             className="input font-mono rounded-r-none border-r-0 tracking-wider text-[13px]"
+             onKeyDown={(e) => e.key === 'Enter' && handleTrack()}
+           />
+           <button onClick={handleTrack} className="bg-text text-white px-[18px] font-bold text-[12px] border border-text rounded-r-[5px] hover:bg-black transition-colors shrink-0">
+             Track ↗
+           </button>
+        </div>
       </div>
-      <button onClick={handleTrack} className="btn-primary mt-6 px-5">Track →</button>
+      <div>
+         <p className="text-[11px] text-muted max-w-[200px]">Enter the unique tracking ID provided when you filed the complaint.</p>
+      </div>
     </div>
   );
 }

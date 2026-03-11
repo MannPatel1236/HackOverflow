@@ -46,114 +46,125 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md animate-fade-in">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center">
-              <span className="text-white font-bold">CA</span>
-            </div>
-            <span className="font-bold text-2xl text-white">Civic<span className="text-indigo-400">AI</span></span>
-          </Link>
-          <p className="text-slate-400 mt-2 text-sm">
-            {step === 'phone' && 'Sign in with your mobile number'}
-            {step === 'otp' && 'Enter the OTP sent to your number'}
-          </p>
-        </div>
+    <div className="min-h-screen bg-cream flex flex-col">
+      {/* Topbar matching Auth Page */}
+      <div className="bg-white border-b border-border px-12 h-[52px] flex items-center justify-between">
+        <Link to="/" className="bg-transparent border border-border rounded-[4px] px-[14px] py-[6px] text-[12px] font-semibold text-text cursor-pointer flex items-center gap-[6px] transition-all duration-150 hover:border-burg hover:text-burg">
+          ← Back
+        </Link>
+      </div>
 
-        <div className="card p-8 space-y-5">
-          {step === 'phone' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Mobile Number</label>
-                <div className="flex">
-                  <div className="flex items-center px-3 bg-slate-800 border border-r-0 border-slate-700 rounded-l-xl text-slate-400 text-sm">
-                    🇮🇳 +91
+      <div className="flex-1 flex items-center justify-center py-12 px-6">
+        <div className="w-full max-w-[460px] bg-white rounded-[8px] border border-border overflow-hidden shadow-[0_16px_56px_rgba(0,0,0,0.09)] animate-fade-in">
+          {/* Card Head */}
+          <div className="bg-navy px-[28px] py-[26px] text-center">
+            <div className="flex items-center justify-center gap-[9px] mb-[3px]">
+              <div className="w-[20px] h-[20px] rounded-full border-2 border-burg relative flex items-center justify-center shrink-0">
+                <div className="w-[5px] h-[5px] rounded-full bg-burg"></div>
+              </div>
+              <span className="font-serif text-[17px] text-white font-bold">
+                Civic<span className="text-burg">AI</span>
+              </span>
+            </div>
+            <div className="text-[11px] text-white/33 uppercase tracking-[1px]">
+              {step === 'phone' ? 'Citizen Login / Register' : 'OTP Verification'}
+            </div>
+          </div>
+
+          <div className="p-[28px]">
+            {step === 'phone' && (
+              <>
+                <div className="mb-[14px]">
+                  <label className="block text-[11px] font-semibold text-text mb-[4px]">Mobile Number</label>
+                  <div className="flex">
+                    <div className="flex items-center px-3 bg-cream border-[1.5px] border-r-0 border-border rounded-l-[5px] text-muted text-[13px] font-sans">
+                      🇮🇳 +91
+                    </div>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="9876543210"
+                      className="input rounded-l-none"
+                      onKeyDown={(e) => e.key === 'Enter' && handleSendOTP()}
+                      maxLength={10}
+                    />
                   </div>
+                </div>
+                {error && <p className="text-burg text-xs mb-3">{error}</p>}
+                
+                <button onClick={handleSendOTP} className="w-full p-[12px] rounded-[5px] bg-burg hover:bg-burg-2 text-white border-none text-[14px] font-bold cursor-pointer transition-all duration-200 shadow-[0_4px_14px_rgba(139,26,26,0.28)] mt-[4px]" disabled={loading}>
+                  {loading ? 'Sending...' : 'Send OTP →'}
+                </button>
+
+                <div className="text-center text-[11px] text-dim my-[14px] relative before:content-[''] before:absolute before:top-1/2 before:left-0 before:w-[38%] before:h-[1px] before:bg-border after:content-[''] after:absolute after:top-1/2 after:right-0 after:w-[38%] after:h-[1px] after:bg-border">
+                  OR
+                </div>
+
+                <button
+                  onClick={() => {
+                    const number = import.meta.env.VITE_WHATSAPP_NUMBER || '14155238886';
+                    window.open(`https://wa.me/${number}?text=Hi%20CivicAI`, '_blank');
+                  }}
+                  className="w-full p-[10px] rounded-[5px] bg-[#25D366] hover:bg-[#20bd5a] text-white border-none text-[13px] font-semibold cursor-pointer flex items-center justify-center gap-[8px] transition-colors"
+                >
+                  <span className="text-lg leading-none">📱</span>
+                  File via WhatsApp instead
+                </button>
+              </>
+            )}
+
+            {step === 'otp' && (
+              <>
+                <div className="mb-[14px]">
+                  <label className="block text-[11px] font-semibold text-text mb-[4px]">
+                    Your Name (optional)
+                  </label>
                   <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="9876543210"
-                    className="input rounded-l-none"
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendOTP()}
-                    maxLength={10}
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="What should we call you?"
+                    className="input"
                   />
                 </div>
-              </div>
-              {error && <p className="text-red-400 text-sm">{error}</p>}
-              <button onClick={handleSendOTP} className="btn-primary w-full py-3" disabled={loading}>
-                {loading ? 'Sending...' : 'Send OTP →'}
-              </button>
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-800" /></div>
-                <div className="relative text-center"><span className="bg-slate-900 px-3 text-xs text-slate-500">OR</span></div>
-              </div>
-              <button
-                onClick={() => {
-                  const number = import.meta.env.VITE_WHATSAPP_NUMBER || '14155238886';
-                  window.open(`https://wa.me/${number}?text=Hi%20CivicAI`, '_blank');
-                }}
-                className="btn-secondary w-full py-3 flex items-center justify-center gap-2"
-              >
-                <span className="text-xl">📱</span>
-                File via WhatsApp instead
-              </button>
-            </>
-          )}
+                <div className="mb-[14px]">
+                  <label className="block text-[11px] font-semibold text-text mb-[4px]">6-Digit OTP</label>
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="Enter OTP"
+                    className="input font-mono tracking-[4px] text-center text-lg"
+                    onKeyDown={(e) => e.key === 'Enter' && handleVerifyOTP()}
+                  />
+                  {devOtp && (
+                     <div className="mt-3 p-2 bg-burg/5 border border-burg/20 rounded-md text-[11px] text-burg font-mono text-center">
+                      Dev OTP: <strong>{devOtp}</strong>
+                    </div>
+                  )}
+                </div>
+                {error && <p className="text-burg text-xs mb-3">{error}</p>}
+                
+                <button onClick={handleVerifyOTP} className="w-full p-[12px] rounded-[5px] bg-burg hover:bg-burg-2 text-white border-none text-[14px] font-bold cursor-pointer transition-all duration-200 shadow-[0_4px_14px_rgba(139,26,26,0.28)] mt-[4px]" disabled={loading}>
+                  {loading ? 'Verifying...' : 'Verify & Sign In →'}
+                </button>
+                <div className="mt-3 text-center">
+                  <button onClick={() => { setStep('phone'); setOtp(''); setError(''); }} className="text-[12px] text-muted hover:text-burg font-semibold bg-transparent border-none cursor-pointer">
+                    ← Change number
+                  </button>
+                </div>
+              </>
+            )}
 
-          {step === 'otp' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Your Name (optional)
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="What should we call you?"
-                  className="input"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">OTP</label>
-                <input
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="6-digit OTP"
-                  className="input font-mono text-lg tracking-widest text-center"
-                  onKeyDown={(e) => e.key === 'Enter' && handleVerifyOTP()}
-                />
-                {devOtp && (
-                  <p className="text-xs text-indigo-400 mt-2 font-mono bg-indigo-500/10 px-3 py-2 rounded-lg border border-indigo-500/20">
-                    🧪 Dev OTP: <strong>{devOtp}</strong> (remove in production)
-                  </p>
-                )}
-              </div>
-              {error && <p className="text-red-400 text-sm">{error}</p>}
-              <button onClick={handleVerifyOTP} className="btn-primary w-full py-3" disabled={loading}>
-                {loading ? 'Verifying...' : 'Verify & Sign In →'}
-              </button>
-              <button onClick={() => { setStep('phone'); setOtp(''); setError(''); }} className="btn-ghost w-full text-sm">
-                ← Change number
-              </button>
-            </>
-          )}
-
-          <p className="text-center text-xs text-slate-600">
-            By continuing, you agree to CivicAI's terms of service
-          </p>
+            <div className="text-center text-[12px] text-muted mt-[16px] pt-[16px] border-t border-border">
+              Are you a municipal officer?{' '}
+              <Link to="/admin/login" className="text-burg font-semibold no-underline">
+                Admin login →
+              </Link>
+            </div>
+          </div>
         </div>
-
-        <p className="text-center text-sm text-slate-500 mt-6">
-          Are you a municipal officer?{' '}
-          <Link to="/admin/login" className="text-indigo-400 hover:text-indigo-300">
-            Admin login →
-          </Link>
-        </p>
       </div>
     </div>
   );
