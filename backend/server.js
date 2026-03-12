@@ -17,7 +17,7 @@ const server = http.createServer(app);
 // ── Socket.io ──────────────────────────────────────────────────────────────
 const io = new Server(server, {
   cors: {
-    origin: [process.env.CLIENT_URL, 'http://localhost:3000', 'http://localhost:5173'].filter(Boolean),
+    origin: '*', // Permissive for hackathon team access
     methods: ['GET', 'POST', 'PATCH'],
   },
 });
@@ -44,7 +44,7 @@ io.on('connection', (socket) => {
 });
 
 // ── Middleware ─────────────────────────────────────────────────────────────
-app.use(cors({ origin: [process.env.CLIENT_URL, 'http://localhost:3000', 'http://localhost:5173'].filter(Boolean), credentials: true }));
+app.use(cors({ origin: '*', credentials: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -53,6 +53,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
 app.use('/api/admin', adminRoutes);
+
+// Serve uploaded images statically
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));

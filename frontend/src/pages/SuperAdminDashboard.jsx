@@ -1,8 +1,84 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import Navbar from '../components/Navbar';
 import { getNationalStats, getLeaderboard, createAdmin, listAdmins, deleteAdmin } from '../utils/api';
-import { Award, CheckCircle, XCircle, Globe, ClipboardList, AlertTriangle, Map, Trash2, Droplets, Zap, BarChart, MapPin } from 'lucide-react';
+
+// ── Inline SVG Icons ──────────────────────────────────────────────────────
+const SvgIcons = {
+  globe: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+    </svg>
+  ),
+  clipboard: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+    </svg>
+  ),
+  check: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+  ),
+  clock: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </svg>
+  ),
+  alert: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  ),
+  map: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+    </svg>
+  ),
+  award: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+    </svg>
+  ),
+  chart: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+  ),
+  roads: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 17l3-10h12l3 10"/><line x1="9" y1="17" x2="9" y2="7"/><line x1="15" y1="17" x2="15" y2="7"/>
+    </svg>
+  ),
+  sanitation: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+    </svg>
+  ),
+  water: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2C6 9 4 13 4 16a8 8 0 0016 0c0-3-2-7-8-14z"/>
+    </svg>
+  ),
+  electricity: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>
+  ),
+  pin: (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+    </svg>
+  ),
+  trash: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+    </svg>
+  ),
+};
+
+const DEPT_ICONS = { Roads: SvgIcons.roads, Sanitation: SvgIcons.sanitation, Water: SvgIcons.water, Electricity: SvgIcons.electricity, Other: SvgIcons.clipboard };
 
 const SCORE_COLOR = (score) =>
   score >= 70 ? 'text-green font-bold' : score >= 50 ? 'text-amber font-bold' : 'text-burg font-bold';
@@ -13,9 +89,21 @@ const SCORE_BADGE = (rating) => ({
   Poor: 'text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block bg-burg-bg text-burg border-burg/20',
 }[rating] || 'text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block bg-off text-muted border-border');
 
-const RANK_MEDAL = (i) => [<Award className="w-4 h-4 text-amber" />, <Award className="w-4 h-4 text-gray-400" />, <Award className="w-4 h-4 text-amber-700" />][i] || <span className="text-[14px] text-muted font-bold font-mono">#{i + 1}</span>;
+const RANK_MEDAL = (i) => {
+  const colors = ['text-amber', 'text-gray-400', 'text-amber-700'];
+  if (i < 3) return <span className={colors[i]}>{SvgIcons.award}</span>;
+  return <span className="text-[14px] text-muted font-bold font-mono">#{i + 1}</span>;
+};
 
 const INDIA_CENTER = [22.5937, 82.9629];
+
+// Density-based coloring
+function getDensityColor(count) {
+  if (count >= 31) return '#ef4444';
+  if (count >= 16) return '#f97316';
+  if (count >= 6) return '#eab308';
+  return '#22c55e';
+}
 
 export default function SuperAdminDashboard() {
   const [tab, setTab] = useState('overview');
@@ -26,9 +114,19 @@ export default function SuperAdminDashboard() {
   const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '', role: 'state_admin', state: '' });
   const [createLoading, setCreateLoading] = useState(false);
   const [createMsg, setCreateMsg] = useState('');
+  const intervalRef = useRef(null);
 
   useEffect(() => {
     fetchAll();
+
+    // Auto-refresh every 60 seconds
+    intervalRef.current = setInterval(() => {
+      fetchAll();
+    }, 60000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, []);
 
   const fetchAll = async () => {
@@ -60,12 +158,12 @@ export default function SuperAdminDashboard() {
     setCreateMsg('');
     try {
       await createAdmin(newAdmin);
-      setCreateMsg('✅ Admin profile securely provisioned.');
+      setCreateMsg('Admin profile securely provisioned.');
       setNewAdmin({ name: '', email: '', password: '', role: 'state_admin', state: '' });
       fetchAll();
       setTimeout(() => setCreateMsg(''), 4000);
     } catch (e) {
-      setCreateMsg('❌ ' + (e.response?.data?.error || 'Authorization protocol failed.'));
+      setCreateMsg(e.response?.data?.error || 'Authorization protocol failed.');
     } finally {
       setCreateLoading(false);
     }
@@ -94,7 +192,7 @@ export default function SuperAdminDashboard() {
                Federal Oversight Level
             </div>
             <h1 className="font-serif text-[28px] font-bold text-text mb-1 flex items-center gap-[8px]">
-              <Globe size={18} className="inline mr-2" /> National Control Center
+              {SvgIcons.globe} National Control Center
             </h1>
             <p className="text-[13px] text-muted font-medium">Super admin — pan-national orchestration and telemetry</p>
           </div>
@@ -106,7 +204,7 @@ export default function SuperAdminDashboard() {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-[20px] py-[10px] rounded-[4px] text-[12px] font-bold uppercase tracking-wider transition-all ${
+              className={`px-[20px] py-[10px] rounded-[4px] text-[12px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 tab === t ? 'bg-navy text-white shadow-md' : 'bg-transparent text-muted hover:text-text hover:bg-off'
               }`}
             >
@@ -120,18 +218,18 @@ export default function SuperAdminDashboard() {
           <div className="space-y-[24px] animate-fade-in">
             {/* National Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
-              {loading ? (
+              {loading && !stats ? (
                 [...Array(4)].map((_, i) => <div key={i} className="card h-[100px] bg-off border border-border rounded-[6px] animate-pulse" />)
               ) : [
-                { label: 'Total Nationwide', value: stats?.total_complaints?.toLocaleString(), icon: <ClipboardList size={16} className="inline" />, bg: 'bg-white', text: 'text-text' },
-                { label: 'Avg. Resolution', value: `${stats?.resolve_pct}%`, icon: <CheckCircle size={16} className="inline" />, bg: 'bg-green-bg', text: 'text-green' },
-                { label: 'Mean TAT', value: `${stats?.avg_resolve_days}d`, icon: '⏱️', bg: 'bg-[#EFF6FF]', text: 'text-[#1D4ED8]' },
-                { label: 'Active Breaches', value: stats?.sla_breaches, icon: <AlertTriangle size={16} className="inline text-burg" />, bg: 'bg-burg-bg', text: 'text-burg', border: 'border-burg/20' },
+                { label: 'Total Nationwide', value: stats?.total_complaints?.toLocaleString(), icon: SvgIcons.clipboard, bg: 'bg-white', text: 'text-text' },
+                { label: 'Avg. Resolution', value: `${stats?.resolve_pct}%`, icon: SvgIcons.check, bg: 'bg-green-bg', text: 'text-green' },
+                { label: 'Mean TAT', value: `${stats?.avg_resolve_days}d`, icon: SvgIcons.clock, bg: 'bg-[#EFF6FF]', text: 'text-[#1D4ED8]' },
+                { label: 'Active Breaches', value: stats?.sla_breaches, icon: <span className="text-burg">{SvgIcons.alert}</span>, bg: 'bg-burg-bg', text: 'text-burg', border: 'border-burg/20' },
               ].map((s) => (
                 <div key={s.label} className={`flex flex-col gap-1 p-4 border rounded-[6px] shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all ${s.bg} ${s.border || 'border-border'}`}>
                   <div className="flex justify-between items-center mb-1">
                      <div className={`text-[11px] font-bold uppercase tracking-wider ${s.text === 'text-text' ? 'text-muted' : s.text}`}>{s.label}</div>
-                     <div className="opacity-50 text-[14px]">{s.icon}</div>
+                     <div className="opacity-40">{s.icon}</div>
                   </div>
                   <div className={`font-serif text-[28px] font-black leading-none ${s.text}`}>{s.value ?? '—'}</div>
                 </div>
@@ -143,7 +241,7 @@ export default function SuperAdminDashboard() {
               <div className="lg:col-span-3 card flex flex-col relative overflow-hidden bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)]" style={{ height: '460px' }}>
                 <div className="px-[20px] py-[16px] border-b border-border flex items-center justify-between bg-white z-20">
                   <h2 className="text-[14px] font-bold text-text uppercase tracking-wider flex items-center gap-[8px]">
-                    🗺️ Federal Telemetry Map
+                    {SvgIcons.map} Federal Telemetry Map
                   </h2>
                 </div>
                 <div className="flex-1 w-full bg-cream relative z-10">
@@ -164,7 +262,7 @@ export default function SuperAdminDashboard() {
                           center={coords}
                           radius={Math.min(10 + Math.sqrt(s.total) * 1.5, 40)}
                           pathOptions={{
-                            fillColor: s.sla_breaches > 10 ? '#8b1a1a' : s.resolve_pct > 70 ? '#16543a' : '#7a5200',
+                            fillColor: getDensityColor(s.total),
                             fillOpacity: 0.8,
                             color: '#ffffff',
                             weight: 2,
@@ -189,7 +287,7 @@ export default function SuperAdminDashboard() {
                                 {s.sla_breaches > 0 && (
                                    <div className="pt-[4px] border-t border-border">
                                       <span className="text-[11px] font-bold uppercase tracking-wider text-burg flex items-center gap-1">
-                                         ⚠️ {s.sla_breaches} Escalations
+                                         {s.sla_breaches} Escalations
                                       </span>
                                    </div>
                                 )}
@@ -200,6 +298,24 @@ export default function SuperAdminDashboard() {
                       );
                     })}
                   </MapContainer>
+
+                  {/* Density Legend */}
+                  <div className="absolute bottom-[16px] left-[16px] bg-white/95 backdrop-blur-sm rounded-[6px] border border-border shadow-md p-[10px] z-[1000]">
+                    <div className="text-[9px] font-bold text-muted uppercase tracking-wider mb-[6px]">Density</div>
+                    <div className="space-y-[3px]">
+                      {[
+                        { color: '#22c55e', label: '1–5' },
+                        { color: '#eab308', label: '6–15' },
+                        { color: '#f97316', label: '16–30' },
+                        { color: '#ef4444', label: '31+' },
+                      ].map((l) => (
+                        <div key={l.label} className="flex items-center gap-[6px]">
+                          <div className="w-[10px] h-[10px] rounded-full" style={{ backgroundColor: l.color }} />
+                          <span className="text-[10px] font-medium text-muted">{l.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -212,12 +328,12 @@ export default function SuperAdminDashboard() {
                   </h3>
                   <div className="space-y-[14px]">
                     {deptBreakdown.map((d) => {
-                      const ICONS = { Roads: <Map size={16} className="inline"/>, Sanitation: <Trash2 size={16} className="inline"/>, Water: <Droplets size={16} className="inline"/>, Electricity: <Zap size={16} className="inline"/>, Other: <ClipboardList size={16} className="inline" /> };
+                      const icon = DEPT_ICONS[d._id] || SvgIcons.clipboard;
                       const pct = stats?.total_complaints > 0 ? Math.round((d.count / stats.total_complaints) * 100) : 0;
                       return (
                         <div key={d._id}>
                           <div className="flex items-center justify-between text-[13px] mb-[6px]">
-                            <span className="font-semibold text-text flex items-center gap-2">{ICONS[d._id] || <ClipboardList size={16} className="inline" />} {d._id}</span>
+                            <span className="font-semibold text-text flex items-center gap-2">{icon} {d._id}</span>
                             <span className="text-muted font-mono font-bold text-[12px]">{d.count} <span className="opacity-60">({pct}%)</span></span>
                           </div>
                           <div className="h-[6px] bg-off rounded-full overflow-hidden border border-border/50">
@@ -271,7 +387,7 @@ export default function SuperAdminDashboard() {
         {tab === 'leaderboard' && (
           <div className="space-y-[16px] animate-fade-in">
             <div className="bg-white border border-border rounded-[6px] p-[16px] flex items-start gap-[12px]">
-               <BarChart className="w-5 h-5" />
+               {SvgIcons.chart}
                <div>
                   <h3 className="text-[13px] font-bold text-text uppercase tracking-wider mb-[2px]">Performance Matrix</h3>
                   <p className="text-[12px] text-muted font-medium leading-[1.6]">
@@ -380,7 +496,7 @@ export default function SuperAdminDashboard() {
                 </div>
 
                 {createMsg && (
-                  <div className={`mt-[16px] p-[12px] rounded-[4px] border text-[13px] font-bold flex items-center gap-[8px] ${createMsg.includes('Admin profile') ? 'bg-green-bg text-green border-green/20' : 'bg-burg-bg text-burg border-burg/20'}`}>
+                  <div className={`mt-[16px] p-[12px] rounded-[4px] border text-[13px] font-bold flex items-center gap-[8px] ${createMsg.includes('provisioned') ? 'bg-green-bg text-green border-green/20' : 'bg-burg-bg text-burg border-burg/20'}`}>
                     {createMsg}
                   </div>
                 )}
@@ -410,7 +526,7 @@ export default function SuperAdminDashboard() {
                         <span className={`text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block ${a.role === 'super_admin' ? 'bg-[#F3E8FF] text-[#9333EA] border-[#D8B4FE]' : 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]'}`}>
                           {a.role === 'super_admin' ? 'Tier 1' : 'Tier 2'}
                         </span>
-                        {a.state && <span className="text-[11px] font-semibold text-muted flex items-center gap-1"><MapPin size={12} className="inline mr-1"/> {a.state}</span>}
+                        {a.state && <span className="text-[11px] font-semibold text-muted flex items-center gap-1">{SvgIcons.pin} {a.state}</span>}
                       </div>
                     </div>
                     <button
@@ -418,7 +534,7 @@ export default function SuperAdminDashboard() {
                       className="text-muted hover:text-burg opacity-0 group-hover:opacity-100 transition-all p-[8px] hover:bg-burg-bg rounded-[4px] cursor-pointer"
                       title="Revoke Access"
                     >
-                      <span className="text-[18px] leading-none">🗑️</span>
+                      {SvgIcons.trash}
                     </button>
                   </div>
                 ))}

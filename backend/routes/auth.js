@@ -44,7 +44,7 @@ router.post('/send-otp', async (req, res) => {
     res.json({
       message: 'OTP sent to your WhatsApp',
       // REMOVE in production — only for hackathon demo:
-      dev_otp: process.env.NODE_ENV !== 'production' ? otp : undefined,
+      dev_otp: (process.env.NODE_ENV !== 'production' || process.env.ALLOW_DEV_OTP === 'true') ? otp : undefined,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -1,5 +1,60 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Map, Trash2, Droplets, Zap, ClipboardList, MapPin, Clock, CheckCircle } from 'lucide-react';
+
+// ── Inline SVG Icons ──────────────────────────────────────────────────────
+const Icons = {
+  Roads: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 17l3-10h12l3 10"/><line x1="9" y1="17" x2="9" y2="7"/><line x1="15" y1="17" x2="15" y2="7"/>
+    </svg>
+  ),
+  Sanitation: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+    </svg>
+  ),
+  Water: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2C6 9 4 13 4 16a8 8 0 0016 0c0-3-2-7-8-14z"/>
+    </svg>
+  ),
+  Electricity: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>
+  ),
+  Other: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+    </svg>
+  ),
+  MapPin: (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+    </svg>
+  ),
+  Clock: (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </svg>
+  ),
+  Building: (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>
+    </svg>
+  ),
+  Alert: (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  ),
+  Check: (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  ),
+};
 
 const SEVERITY_STYLES = {
   Critical: 'bg-burg-bg text-burg border-burg/20',
@@ -15,16 +70,10 @@ const STATUS_STYLES = {
   Resolved: 'bg-green-bg text-green border-green/20',
 };
 
-const DEPT_ICONS = {
-  Roads: <Map size={14} className="inline mr-1"/>,
-  Sanitation: <Trash2 size={14} className="inline mr-1"/>,
-  Water: <Droplets size={14} className="inline mr-1"/>,
-  Electricity: <Zap size={14} className="inline mr-1"/>,
-  Other: <ClipboardList size={14} className="inline mr-1"/>,
-};
+const STATUSES = ['Registered', 'Under Review', 'In Progress', 'Resolved'];
 
 export default function ComplaintCard({ complaint, showActions, onStatusChange }) {
-  const deptIcon = DEPT_ICONS[complaint.department] || <ClipboardList size={14} className="inline mr-1"/>;
+  const deptIcon = Icons[complaint.department] || Icons.Other;
   const filed = new Date(complaint.filed_at).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'short', year: 'numeric',
   });
@@ -35,7 +84,7 @@ export default function ComplaintCard({ complaint, showActions, onStatusChange }
     }`}>
       
       <div className="flex items-start gap-[14px] flex-1 min-w-0">
-        <div className="w-[44px] h-[44px] rounded-[6px] bg-cream border border-border flex items-center justify-center text-[22px] shrink-0 shadow-sm">
+        <div className="w-[44px] h-[44px] rounded-[6px] bg-cream border border-border flex items-center justify-center shrink-0 shadow-sm text-muted">
           {deptIcon}
         </div>
         
@@ -52,7 +101,15 @@ export default function ComplaintCard({ complaint, showActions, onStatusChange }
              </span>
              {complaint.sla_breach && (
                 <span className="ml-auto md:ml-0 text-[10px] font-bold text-white bg-burg px-[6px] py-[2px] rounded-[3px] uppercase tracking-wider flex items-center gap-1">
-                   ⚠️ Breach
+                   <span className="text-white">{Icons.Alert}</span> Breach
+                </span>
+             )}
+             {complaint.duplicate_count > 0 && (
+                <span className="ml-auto md:ml-0 text-[10px] font-bold text-white bg-navy px-[6px] py-[2px] rounded-[3px] uppercase tracking-wider flex items-center gap-1">
+                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                   </svg>
+                   Grouped (+{complaint.duplicate_count})
                 </span>
              )}
           </div>
@@ -60,27 +117,26 @@ export default function ComplaintCard({ complaint, showActions, onStatusChange }
              {complaint.summary_en || 'Complaint Summary Pending'}
           </h3>
           <div className="flex items-center gap-[12px] text-[11px] text-muted font-medium">
-             <span className="flex items-center gap-1">🏢 {complaint.department}</span>
-             {complaint.district && <span className="flex items-center gap-1"><MapPin size={12} className="inline mr-1"/> {complaint.district}, {complaint.state}</span>}
-             <span className="flex items-center gap-1">🕒 {filed}</span>
+             <span className="flex items-center gap-1">{Icons.Building} {complaint.department}</span>
+             {complaint.district && <span className="flex items-center gap-1">{Icons.MapPin} {complaint.district}, {complaint.state}</span>}
+             <span className="flex items-center gap-1">{Icons.Clock} {filed}</span>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-[12px] shrink-0 w-full md:w-auto mt-2 md:mt-0 pt-3 md:pt-0 border-t border-border md:border-t-0">
+      <div className="flex flex-col gap-[10px] shrink-0 w-full md:w-auto mt-2 md:mt-0 pt-3 md:pt-0 border-t border-border md:border-t-0">
          <Link
             to={`/track/${complaint.tracking_id}`}
-            className="flex-1 md:flex-none text-center text-[12px] font-bold text-text bg-cream hover:bg-off border border-border rounded-[5px] px-[14px] py-[8px] transition-colors"
+            className="text-center text-[12px] font-bold text-text bg-cream hover:bg-off border border-border rounded-[5px] px-[14px] py-[8px] transition-colors"
           >
             Track Details ↗
          </Link>
          {showActions && onStatusChange && (
-            <div className="flex-1 md:flex-none">
-              <StatusDropdown
-                current={complaint.status}
-                onChange={(status) => onStatusChange(complaint._id, status)}
-              />
-            </div>
+            <StageChanger
+              complaintId={complaint._id}
+              current={complaint.status}
+              onStatusChange={onStatusChange}
+            />
          )}
       </div>
 
@@ -88,23 +144,101 @@ export default function ComplaintCard({ complaint, showActions, onStatusChange }
   );
 }
 
-function StatusDropdown({ current, onChange }) {
-  const statuses = ['Registered', 'Under Review', 'In Progress', 'Resolved'];
+function StageChanger({ complaintId, current, onStatusChange }) {
+  const [pendingStage, setPendingStage] = useState(null);
+  const [note, setNote] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null); // { type: 'success' | 'error', msg: '' }
+
+  const currentIdx = STATUSES.indexOf(current);
+
+  const handleConfirm = async () => {
+    if (!pendingStage) return;
+    setLoading(true);
+    setToast(null);
+    try {
+      await onStatusChange(complaintId, pendingStage, note);
+      setToast({ type: 'success', msg: 'Updated ✓' });
+      setPendingStage(null);
+      setNote('');
+      setTimeout(() => setToast(null), 3000);
+    } catch {
+      setToast({ type: 'error', msg: 'Failed ✗' });
+      setTimeout(() => setToast(null), 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <select
-      value={current}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full text-[12px] font-semibold bg-white border border-border text-text rounded-[5px] px-[10px] py-[8px] focus:outline-none focus:border-burg cursor-pointer appearance-none shadow-sm"
-      style={{
-        backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2212%22%20height%3D%228%22%20viewBox%3D%220%200%2012%208%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M1.41%200.589966L6%205.16997L10.59%200.589966L12%201.99997L6%207.99997L0%201.99997L1.41%200.589966Z%22%20fill%3D%22%231A1A1A%22%2F%3E%3C%2Fsvg%3E")',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'right 10px center',
-        backgroundSize: '10px'
-      }}
-    >
-      {statuses.map((s) => (
-        <option key={s} value={s}>{s}</option>
-      ))}
-    </select>
+    <div className="space-y-[8px]">
+      {/* Stage buttons row */}
+      <div className="flex items-center gap-[2px]">
+        {STATUSES.map((status, idx) => {
+          const isCompleted = idx < currentIdx;
+          const isCurrent = status === current;
+          const isPending = status === pendingStage;
+
+          return (
+            <button
+              key={status}
+              onClick={() => {
+                if (status !== current) {
+                  setPendingStage(pendingStage === status ? null : status);
+                  setNote('');
+                }
+              }}
+              disabled={loading}
+              className={`flex-1 py-[6px] px-[4px] text-[9px] font-bold uppercase tracking-wider rounded-[4px] border transition-all duration-200 cursor-pointer flex items-center justify-center gap-[3px] ${
+                isPending
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md scale-[1.03]'
+                  : isCurrent
+                  ? 'bg-indigo-50 text-indigo-700 border-indigo-300 shadow-sm'
+                  : isCompleted
+                  ? 'bg-green-50 text-green-700 border-green-200'
+                  : 'bg-off text-muted border-border hover:border-indigo-300 hover:text-indigo-600'
+              } ${loading ? 'opacity-50 pointer-events-none' : ''}`}
+              title={status}
+            >
+              {isCompleted && <span className="text-green-600">{Icons.Check}</span>}
+              {status.split(' ').map(w => w[0]).join('')}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Notes + Confirm panel */}
+      {pendingStage && (
+        <div className="animate-fade-in space-y-[6px]">
+          <input
+            type="text"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder={`Note for "${pendingStage}" (optional)`}
+            className="w-full text-[11px] px-[10px] py-[6px] border border-border rounded-[4px] bg-white focus:outline-none focus:border-indigo-400 font-medium"
+          />
+          <button
+            onClick={handleConfirm}
+            disabled={loading}
+            className="w-full py-[6px] text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-[4px] border-none cursor-pointer transition-colors flex items-center justify-center gap-[6px]"
+          >
+            {loading ? (
+              <div className="w-[14px] h-[14px] border-[2px] border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              `Confirm → ${pendingStage}`
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div className={`text-[11px] font-bold px-[10px] py-[5px] rounded-[4px] text-center animate-fade-in ${
+          toast.type === 'success' ? 'bg-green-bg text-green border border-green/20' : 'bg-burg-bg text-burg border border-burg/20'
+        }`}>
+          {toast.msg}
+        </div>
+      )}
+    </div>
   );
 }

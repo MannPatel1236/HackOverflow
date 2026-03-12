@@ -4,6 +4,99 @@ const Admin = require('../models/Admin');
 const Complaint = require('../models/Complaint');
 const { adminAuth, superAdminAuth } = require('../middleware/auth');
 
+// ── State name normalization ────────────────────────────────────────────────
+// Maps known variants (Hindi, regional, city names, typos) → canonical state
+const STATE_NORMALIZE_MAP = {
+  // Hindi / regional script
+  'महाराष्ट्र': 'Maharashtra',
+  'महाराष्ट्र |': 'Maharashtra',
+  'कर्नाटक': 'Karnataka',
+  'तमिलनाडु': 'Tamil Nadu',
+  'दिल्ली': 'Delhi',
+  'गुजरात': 'Gujarat',
+  'राजस्थान': 'Rajasthan',
+  'उत्तर प्रदेश': 'Uttar Pradesh',
+  'पश्चिम बंगाल': 'West Bengal',
+  'केरल': 'Kerala',
+  'मध्य प्रदेश': 'Madhya Pradesh',
+  'पंजाब': 'Punjab',
+  'तेलंगाना': 'Telangana',
+  'बिहार': 'Bihar',
+  'आंध्र प्रदेश': 'Andhra Pradesh',
+  'हरियाणा': 'Haryana',
+  'छत्तीसगढ़': 'Chhattisgarh',
+  'झारखंड': 'Jharkhand',
+  'उत्तराखंड': 'Uttarakhand',
+  'ओडिशा': 'Odisha',
+  'गोवा': 'Goa',
+  'असम': 'Assam',
+  // Common city → state mappings
+  'mumbai': 'Maharashtra', 'pune': 'Maharashtra', 'nagpur': 'Maharashtra',
+  'panvel': 'Maharashtra', 'thane': 'Maharashtra', 'nashik': 'Maharashtra',
+  'bangalore': 'Karnataka', 'bengaluru': 'Karnataka', 'mysore': 'Karnataka',
+  'chennai': 'Tamil Nadu', 'coimbatore': 'Tamil Nadu', 'madurai': 'Tamil Nadu',
+  'new delhi': 'Delhi',
+  'ahmedabad': 'Gujarat', 'surat': 'Gujarat', 'vadodara': 'Gujarat',
+  'jaipur': 'Rajasthan', 'udaipur': 'Rajasthan', 'jodhpur': 'Rajasthan',
+  'lucknow': 'Uttar Pradesh', 'noida': 'Uttar Pradesh', 'kanpur': 'Uttar Pradesh',
+  'kolkata': 'West Bengal',
+  'hyderabad': 'Telangana',
+  'kochi': 'Kerala', 'thiruvananthapuram': 'Kerala',
+  'bhopal': 'Madhya Pradesh', 'indore': 'Madhya Pradesh',
+  'chandigarh': 'Punjab', 'ludhiana': 'Punjab', 'amritsar': 'Punjab',
+  'patna': 'Bihar',
+};
+
+// Build the $switch branches for the aggregation pipeline
+const SWITCH_BRANCHES = Object.entries(STATE_NORMALIZE_MAP).map(([variant, canonical]) => ({
+  case: { $eq: [{ $toLower: '$state' }, variant.toLowerCase()] },
+  then: canonical,
+}));
+
+// Aggregation stage: adds normalized_state field
+const NORMALIZE_STATE_STAGE = {
+  $addFields: {
+    normalized_state: {
+      $cond: {
+        if: { $or: [{ $eq: ['$state', null] }, { $eq: ['$state', ''] }, { $eq: [{ $type: '$state' }, 'missing'] }] },
+        then: 'Unknown',
+        else: {
+          $switch: {
+            branches: SWITCH_BRANCHES,
+            // Default: title-case the raw state (capitalize first letter of each word)
+            default: {
+              $reduce: {
+                input: {
+                  $filter: {
+                    input: { $split: [{ $trim: { input: '$state' } }, ' '] },
+                    as: 'word',
+                    cond: { $gt: [{ $strLenCP: '$$word' }, 0] },
+                  },
+                },
+                initialValue: '',
+                in: {
+                  $concat: [
+                    '$$value',
+                    { $cond: [{ $eq: ['$$value', ''] }, '', ' '] },
+                    { $toUpper: { $substrCP: ['$$this', 0, 1] } },
+                    {
+                      $cond: {
+                        if: { $gt: [{ $strLenCP: '$$this' }, 1] },
+                        then: { $toLower: { $substrCP: ['$$this', 1, { $subtract: [{ $strLenCP: '$$this' }, 1] }] } },
+                        else: '',
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 // ── NATIONAL STATS (Super Admin) ───────────────────────────────────────────
 
 /**
@@ -22,9 +115,10 @@ router.get('/stats/national', superAdminAuth, async (req, res) => {
           { $sort: { count: -1 } },
         ]),
         Complaint.aggregate([
+          NORMALIZE_STATE_STAGE,
           {
             $group: {
-              _id: '$state',
+              _id: '$normalized_state',
               total: { $sum: 1 },
               resolved: { $sum: { $cond: [{ $eq: ['$status', 'Resolved'] }, 1, 0] } },
               sla_breaches: { $sum: { $cond: ['$sla_breach', 1, 0] } },
@@ -65,7 +159,7 @@ router.get('/stats/national', superAdminAuth, async (req, res) => {
         (s.resolve_pct / 100) * 50 + speedScore * 30 - breachPenalty * 20
       );
       const rating =
-        score >= 70 ? '🟢 Excellent' : score >= 50 ? '🟡 Average' : '🔴 Poor';
+        score >= 70 ? 'Excellent' : score >= 50 ? 'Average' : 'Poor';
       return { ...s, score: Math.max(0, score), rating };
     });
     rankedStates.sort((a, b) => b.score - a.score);
@@ -177,9 +271,10 @@ router.get('/stats/state/:state', adminAuth, async (req, res) => {
 router.get('/leaderboard', superAdminAuth, async (req, res) => {
   try {
     const stateStats = await Complaint.aggregate([
+      NORMALIZE_STATE_STAGE,
       {
         $group: {
-          _id: '$state',
+          _id: '$normalized_state',
           total: { $sum: 1 },
           resolved: { $sum: { $cond: [{ $eq: ['$status', 'Resolved'] }, 1, 0] } },
           sla_breaches: { $sum: { $cond: ['$sla_breach', 1, 0] } },

@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const Complaint = require('../models/Complaint');
 const User = require('../models/User');
@@ -225,7 +225,7 @@ router.post('/webhook', async (req, res) => {
           Resolved: '✅',
         };
         const emoji = statusEmoji[complaint.status] || '📋';
-        const trackUrl = `${process.env.BASE_URL}/track/${complaint.tracking_id}`;
+        const trackUrl = `${process.env.CLIENT_URL || process.env.BASE_URL}/track/${complaint.tracking_id}`;
         await sendWhatsApp(phone, m.statusFound(complaint, trackUrl, emoji));
       } else {
         await sendWhatsApp(phone, m.statusNotFound(tid));
@@ -331,7 +331,7 @@ router.post('/webhook', async (req, res) => {
       });
       await complaint.save();
 
-      const trackUrl = `${process.env.BASE_URL}/track/${complaint.tracking_id}`;
+      const trackUrl = `${process.env.CLIENT_URL || process.env.BASE_URL}/track/${complaint.tracking_id}`;
       const severityEmoji = { Low: '🟢', Medium: '🟡', High: '🟠', Critical: '🔴' };
       const sev = severityEmoji[complaint.severity] || '🟡';
 

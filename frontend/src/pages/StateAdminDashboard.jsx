@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup, GeoJSON } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import Navbar from '../components/Navbar';
 import ComplaintCard from '../components/ComplaintCard';
 import { useAuth } from '../context/AuthContext';
@@ -17,9 +17,58 @@ const STATE_CENTERS = {
   'West Bengal': [22.9868, 87.8550],
 };
 
-const SEVERITY_COLORS = {
-  Critical: '#8b1a1a', High: '#7a5200', Medium: '#1d4ed8', Low: '#16543a',
+// ── Inline SVG Icons ──────────────────────────────────────────────────────
+const SvgIcons = {
+  clipboard: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+    </svg>
+  ),
+  check: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+  ),
+  clock: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </svg>
+  ),
+  alert: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  ),
+  map: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+    </svg>
+  ),
+  refresh: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+    </svg>
+  ),
+  pin: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+    </svg>
+  ),
+  empty: (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+    </svg>
+  ),
 };
+
+// ── Density-based heatmap color logic ─────────────────────────────────────
+function getDensityColor(count) {
+  if (count >= 31) return '#ef4444'; // red
+  if (count >= 16) return '#f97316'; // orange
+  if (count >= 6) return '#eab308';  // yellow
+  return '#22c55e';                  // green
+}
 
 export default function StateAdminDashboard() {
   const { admin } = useAuth();
@@ -32,6 +81,7 @@ export default function StateAdminDashboard() {
   const [districtComplaints, setDistrictComplaints] = useState([]);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({});
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   const stateName = admin?.state || 'Maharashtra';
   const center = STATE_CENTERS[stateName] || [20.5937, 78.9629];
@@ -48,6 +98,7 @@ export default function StateAdminDashboard() {
       setPagination(complaintsRes.data.pagination);
       setMapData(mapRes.data.data);
       setStats(statsRes.data);
+      setLastUpdated(new Date());
     } catch (e) {
       console.error(e);
     } finally {
@@ -66,12 +117,12 @@ export default function StateAdminDashboard() {
     return () => socket.disconnect();
   }, [fetchData]);
 
-  const handleStatusChange = async (complaintId, status) => {
+  const handleStatusChange = async (complaintId, status, note) => {
     try {
-      await updateComplaintStatus(complaintId, status);
+      await updateComplaintStatus(complaintId, status, note);
       fetchData();
     } catch (e) {
-      alert('Failed to update status');
+      throw e; // Let StageChanger handle the error toast
     }
   };
 
@@ -80,6 +131,22 @@ export default function StateAdminDashboard() {
     const res = await getComplaints({ district, page: 1, limit: 50 });
     setDistrictComplaints(res.data.complaints);
   };
+
+  // Aggregate map data by district for density coloring
+  const aggregatedMapData = (() => {
+    const districts = {};
+    mapData.forEach((d) => {
+      if (!d.lat || !d.lng) return;
+      const key = d.district || `${d.lat.toFixed(2)},${d.lng.toFixed(2)}`;
+      if (!districts[key]) {
+        districts[key] = { district: d.district || key, lat: d.lat, lng: d.lng, count: 0, resolved: 0, sla_breaches: 0 };
+      }
+      districts[key].count++;
+      if (d.status === 'Resolved') districts[key].resolved++;
+      if (d.sla_breach) districts[key].sla_breaches++;
+    });
+    return Object.values(districts);
+  })();
 
   return (
     <div className="min-h-screen bg-cream flex flex-col">
@@ -92,48 +159,68 @@ export default function StateAdminDashboard() {
               State Operations Center
             </div>
             <h1 className="font-serif text-[28px] font-bold text-text mb-1 flex items-center gap-[8px]">
-              🏛️ {stateName} Dashboard
+              {SvgIcons.map} {stateName} Dashboard
             </h1>
             <p className="text-[13px] text-muted font-medium">Municipal officer view — manage and analyze complaints across your state</p>
           </div>
-          <div className="flex items-center gap-[6px] bg-white px-[12px] py-[6px] rounded-[4px] border border-border shrink-0 self-start md:self-auto">
-            <div className="w-[8px] h-[8px] rounded-full bg-green animate-pulse" />
-            <span className="text-[11px] font-bold text-muted uppercase tracking-wider mt-[1px]">Live Network Active</span>
+          <div className="flex items-center gap-[10px] shrink-0 self-start md:self-auto">
+            {lastUpdated && (
+              <span className="text-[10px] text-muted font-medium">
+                Updated {lastUpdated.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+            <button
+              onClick={() => fetchData()}
+              disabled={loading}
+              className="flex items-center gap-[5px] bg-white px-[10px] py-[6px] rounded-[4px] border border-border text-[11px] font-bold text-muted uppercase tracking-wider hover:border-burg hover:text-burg transition-all cursor-pointer disabled:opacity-50"
+            >
+              <span className={loading ? 'animate-spin' : ''}>{SvgIcons.refresh}</span> Refresh
+            </button>
+            <div className="flex items-center gap-[6px] bg-white px-[12px] py-[6px] rounded-[4px] border border-border">
+              <div className="w-[8px] h-[8px] rounded-full bg-green animate-pulse" />
+              <span className="text-[11px] font-bold text-muted uppercase tracking-wider mt-[1px]">Live</span>
+            </div>
           </div>
         </div>
 
         {/* Stats Row */}
-        {stats && (
+        {loading && !stats ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px] mb-[24px]">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-[90px] bg-white border border-border rounded-[6px] animate-pulse" />
+            ))}
+          </div>
+        ) : stats && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px] mb-[24px]">
 
             <div className="flex flex-col gap-1 p-4 border border-border rounded-[6px] bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all">
               <div className="flex justify-between items-center mb-1">
-                <div className="text-[11px] font-bold text-muted uppercase tracking-wider">Total Volume</div>
-                <div className="opacity-50 text-[14px]">📋</div>
+                 <div className="text-[11px] font-bold text-muted uppercase tracking-wider">Total Volume</div>
+                 <div className="opacity-40 text-muted">{SvgIcons.clipboard}</div>
               </div>
               <div className="font-serif text-[28px] font-black text-text leading-none">{stats.stats.total}</div>
             </div>
 
             <div className="flex flex-col gap-1 p-4 border border-border rounded-[6px] bg-green-bg shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all">
               <div className="flex justify-between items-center mb-1">
-                <div className="text-[11px] font-bold text-green uppercase tracking-wider">Resolution Rate</div>
-                <div className="opacity-50 text-[14px]">✅</div>
+                 <div className="text-[11px] font-bold text-green uppercase tracking-wider">Resolution Rate</div>
+                 <div className="opacity-50 text-[14px]">✅</div>
               </div>
               <div className="font-serif text-[28px] font-black text-green leading-none">{stats.stats.resolve_pct}%</div>
             </div>
 
             <div className="flex flex-col gap-1 p-4 border border-border rounded-[6px] bg-amber-bg shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all">
               <div className="flex justify-between items-center mb-1">
-                <div className="text-[11px] font-bold text-amber uppercase tracking-wider">Active Pending</div>
-                <div className="opacity-50 text-[14px]">⏳</div>
+                 <div className="text-[11px] font-bold text-amber uppercase tracking-wider">Active Pending</div>
+                 <div className="opacity-50 text-[14px]">⏳</div>
               </div>
               <div className="font-serif text-[28px] font-black text-amber leading-none">{stats.stats.pending}</div>
             </div>
 
             <div className="flex flex-col gap-1 p-4 border border-burg/20 rounded-[6px] bg-burg-bg shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all">
               <div className="flex justify-between items-center mb-1">
-                <div className="text-[11px] font-bold text-burg uppercase tracking-wider">SLA Breaches</div>
-                <div className="opacity-50 text-[14px]">⚠️</div>
+                 <div className="text-[11px] font-bold text-burg uppercase tracking-wider">SLA Breaches</div>
+                 <div className="opacity-50 text-[14px]">⚠️</div>
               </div>
               <div className="font-serif text-[28px] font-black text-burg leading-none">{stats.stats.sla_breaches}</div>
             </div>
@@ -148,12 +235,12 @@ export default function StateAdminDashboard() {
             <div className="card flex-1 flex flex-col relative overflow-hidden bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)] z-10 w-full">
               <div className="px-[20px] py-[16px] border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-[8px] bg-white z-20">
                 <h2 className="text-[14px] font-bold text-text uppercase tracking-wider flex items-center gap-[8px]">
-                  🗺️ Spatial Grievance Heatmap
+                  {SvgIcons.map} Spatial Grievance Heatmap
                 </h2>
                 <div className="flex items-center gap-[12px] text-[10px] font-bold uppercase tracking-wider bg-off px-[10px] py-[6px] rounded border border-border">
-                  <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#1d4ed8]"></span> Standard</div>
-                  <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#7a5200]"></span> High</div>
-                  <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-burg"></span> Critical</div>
+                   <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#1d4ed8]"></span> Standard</div>
+                   <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#7a5200]"></span> High</div>
+                   <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-burg"></span> Critical</div>
                 </div>
               </div>
               <div className="flex-1 w-full bg-cream relative z-10 block">
@@ -168,14 +255,14 @@ export default function StateAdminDashboard() {
                     url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                   />
-                  {mapData.filter((d) => d.lat && d.lng).map((d, i) => (
+                  {aggregatedMapData.map((d, i) => (
                     <CircleMarker
                       key={d._id || i}
                       center={[d.lat, d.lng]}
-                      radius={12}
+                      radius={Math.min(10 + d.count * 1.5, 35)}
                       pathOptions={{
-                        fillColor: d.sla_breach ? '#8b1a1a' : d.severity === 'Critical' ? '#7a5200' : d.severity === 'High' ? '#b45309' : '#1d4ed8',
-                        fillOpacity: 0.85,
+                        fillColor: d.sla_breaches > 0 ? '#8b1a1a' : d.critical > 0 ? '#7a5200' : '#1d4ed8',
+                        fillOpacity: 0.8,
                         color: '#ffffff',
                         weight: 2,
                       }}
@@ -192,22 +279,40 @@ export default function StateAdminDashboard() {
                             <span className="text-muted font-medium">Department:</span>
                             <span className="font-bold text-text">{d.department || 'Other'}</span>
                           </div>
-                          <div className="flex justify-between items-center text-[12px] mb-[4px]">
-                            <span className="text-muted font-medium">Status:</span>
-                            <span className="font-bold text-green bg-green-bg px-1 rounded">{d.status}</span>
+                          <div className="flex justify-between items-center text-[12px] mb-[6px]">
+                             <span className="text-muted font-medium">Resolution Rate:</span>
+                             <span className="font-bold text-green bg-green-bg px-1 rounded">{Math.round(d.resolve_pct)}%</span>
                           </div>
-                          {d.sla_breach && (
-                            <div className="mt-[8px] pt-[6px] border-t border-border">
-                              <span className="text-[11px] font-bold uppercase tracking-wider text-burg flex items-center gap-1">
-                                ⚠️ SLA Breach
-                              </span>
-                            </div>
+                          {d.sla_breaches > 0 && (
+                             <div className="mt-[8px] pt-[6px] border-t border-border">
+                                <span className="text-[11px] font-bold uppercase tracking-wider text-burg flex items-center gap-1">
+                                   ⚠️ {d.sla_breaches} SLA Breaches Active
+                                </span>
+                             </div>
                           )}
                         </div>
                       </Popup>
                     </CircleMarker>
                   ))}
                 </MapContainer>
+
+                {/* Heatmap Legend */}
+                <div className="absolute bottom-[16px] left-[16px] bg-white/95 backdrop-blur-sm rounded-[6px] border border-border shadow-md p-[10px] z-[1000]">
+                  <div className="text-[9px] font-bold text-muted uppercase tracking-wider mb-[6px]">Density</div>
+                  <div className="space-y-[3px]">
+                    {[
+                      { color: '#22c55e', label: '1–5' },
+                      { color: '#eab308', label: '6–15' },
+                      { color: '#f97316', label: '16–30' },
+                      { color: '#ef4444', label: '31+' },
+                    ].map((l) => (
+                      <div key={l.label} className="flex items-center gap-[6px]">
+                        <div className="w-[10px] h-[10px] rounded-full" style={{ backgroundColor: l.color }} />
+                        <span className="text-[10px] font-medium text-muted">{l.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -216,7 +321,7 @@ export default function StateAdminDashboard() {
               <div className="absolute bottom-[20px] left-[20px] right-[20px] max-h-[40%] bg-white/95 backdrop-blur-md rounded-[8px] shadow-[0_12px_48px_rgba(0,0,0,0.15)] border border-border z-30 flex flex-col animate-fade-in overflow-hidden">
                 <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-border bg-white sticky top-0 z-10">
                   <h3 className="font-bold text-[15px] text-text flex items-center gap-2">
-                    📍 <span className="uppercase tracking-wide">{selectedDistrict} District</span>
+                     📍 <span className="uppercase tracking-wide">{selectedDistrict} District</span>
                   </h3>
                   <button onClick={() => setSelectedDistrict(null)} className="text-[11px] font-bold text-muted uppercase tracking-wider hover:text-burg px-2 py-1 bg-off rounded border border-border cursor-pointer transition-colors">Close ✕</button>
                 </div>
@@ -263,51 +368,25 @@ export default function StateAdminDashboard() {
               </div>
             </div>
 
-            {/* Filter Header Fixed */}
-            <div className="px-[20px] py-[16px] border-b border-border bg-off shrink-0">
-              <div className="flex items-center gap-[8px] mb-[12px]">
-                <span className="w-[12px] h-[2px] bg-burg"></span>
-                <h2 className="text-[13px] font-bold text-text uppercase tracking-wider">Filter Registry</h2>
-              </div>
-              <div className="grid grid-cols-2 gap-[10px]">
-                <select value={filters.department} onChange={(e) => setFilters({ ...filters, department: e.target.value })} className="input text-[12px] py-[6px] px-[8px] bg-white border-border focus:border-burg cursor-pointer font-medium font-sans">
-                  <option value="">All Depts</option>
-                  {['Roads', 'Sanitation', 'Water', 'Electricity', 'Other'].map((d) => <option key={d}>{d}</option>)}
-                </select>
-                <select value={filters.severity} onChange={(e) => setFilters({ ...filters, severity: e.target.value })} className="input text-[12px] py-[6px] px-[8px] bg-white border-border focus:border-burg cursor-pointer font-medium font-sans">
-                  <option value="">All Severities</option>
-                  {['Critical', 'High', 'Medium', 'Low'].map((s) => <option key={s}>{s}</option>)}
-                </select>
-                <select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })} className="input text-[12px] py-[6px] px-[8px] bg-white border-border focus:border-burg cursor-pointer font-medium font-sans">
-                  <option value="">All Statuses</option>
-                  {['Registered', 'Under Review', 'In Progress', 'Resolved'].map((s) => <option key={s}>{s}</option>)}
-                </select>
-                <select value={filters.sla_breach} onChange={(e) => setFilters({ ...filters, sla_breach: e.target.value })} className="input text-[12px] py-[6px] px-[8px] bg-burg border-burg text-white font-bold cursor-pointer">
-                  <option value="">SLA Filter</option>
-                  <option value="true">Breaches Only</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Scrollable List */}
-            <div className="flex-1 overflow-y-auto bg-cream/30 p-[12px] space-y-[12px]">
-              {loading ? (
-                <div className="py-[40px] flex flex-col items-center justify-center text-center">
-                  <div className="w-[30px] h-[30px] border-[2px] border-burg/30 border-t-burg rounded-full animate-spin mb-[12px]"></div>
-                  <span className="text-[12px] font-bold text-muted uppercase tracking-wider">Syncing Registry...</span>
-                </div>
-              ) : complaints.length === 0 ? (
-                <div className="py-[60px] flex flex-col items-center justify-center text-center px-[20px]">
-                  <div className="text-[32px] mb-[12px] opacity-60">📭</div>
-                  <span className="text-[13px] font-bold text-text mb-[4px]">No Matches Found</span>
-                  <p className="text-[12px] text-muted leading-relaxed">Adjust your filter parameters to see active complaints.</p>
-                </div>
-              ) : (
-                complaints.map((c) => (
-                  <ComplaintCard key={c._id} complaint={c} showActions onStatusChange={handleStatusChange} />
-                ))
-              )}
-            </div>
+             {/* Scrollable List */}
+             <div className="flex-1 overflow-y-auto bg-cream/30 p-[12px] space-y-[12px]">
+                {loading ? (
+                  <div className="py-[40px] flex flex-col items-center justify-center text-center">
+                     <div className="w-[30px] h-[30px] border-[2px] border-burg/30 border-t-burg rounded-full animate-spin mb-[12px]"></div>
+                     <span className="text-[12px] font-bold text-muted uppercase tracking-wider">Syncing Registry...</span>
+                  </div>
+                ) : complaints.length === 0 ? (
+                  <div className="py-[60px] flex flex-col items-center justify-center text-center px-[20px]">
+                     <div className="text-[32px] mb-[12px] opacity-60">📭</div>
+                     <span className="text-[13px] font-bold text-text mb-[4px]">No Matches Found</span>
+                     <p className="text-[12px] text-muted leading-relaxed">Adjust your filter parameters to see active complaints.</p>
+                  </div>
+                ) : (
+                  complaints.map((c) => (
+                    <ComplaintCard key={c._id} complaint={c} showActions onStatusChange={handleStatusChange} />
+                  ))
+                )}
+             </div>
 
             {/* Footer Pagination Header Fixed */}
             {pagination.pages > 1 && (

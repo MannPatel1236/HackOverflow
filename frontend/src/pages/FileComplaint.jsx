@@ -11,9 +11,55 @@ const INDIAN_STATES = [
   'Delhi','Jammu and Kashmir','Ladakh',
 ];
 
+// Normalize OSM state names to our dropdown values
+const STATE_ALIASES = {
+  'maharashtra': 'Maharashtra', 'karnataka': 'Karnataka', 'tamil nadu': 'Tamil Nadu',
+  'delhi': 'Delhi', 'gujarat': 'Gujarat', 'rajasthan': 'Rajasthan',
+  'uttar pradesh': 'Uttar Pradesh', 'west bengal': 'West Bengal', 'kerala': 'Kerala',
+  'madhya pradesh': 'Madhya Pradesh', 'punjab': 'Punjab', 'telangana': 'Telangana',
+  'bihar': 'Bihar', 'andhra pradesh': 'Andhra Pradesh', 'haryana': 'Haryana',
+  'chhattisgarh': 'Chhattisgarh', 'jharkhand': 'Jharkhand', 'uttarakhand': 'Uttarakhand',
+  'odisha': 'Odisha', 'goa': 'Goa', 'assam': 'Assam', 'ladakh': 'Ladakh',
+  'jammu and kashmir': 'Jammu and Kashmir', 'himachal pradesh': 'Himachal Pradesh',
+  'manipur': 'Manipur', 'meghalaya': 'Meghalaya', 'mizoram': 'Mizoram',
+  'nagaland': 'Nagaland', 'sikkim': 'Sikkim', 'tripura': 'Tripura',
+  'arunachal pradesh': 'Arunachal Pradesh',
+};
+
+/**
+ * Reverse geocode lat/lng → { state, district, city } using OSM Nominatim (free, no key).
+ */
+async function reverseGeocode(lat, lng) {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
+      { headers: { 'Accept-Language': 'en', 'User-Agent': 'CivicAI/1.0' } }
+    );
+    const data = await res.json();
+    const a = data.address || {};
+
+    // Resolve state
+    const rawState = (a.state || '').toLowerCase();
+    const state = STATE_ALIASES[rawState] || '';
+
+    // District: OSM uses county / state_district / district
+    const district = a.county || a.state_district || a.district || '';
+
+    // City: suburb > city_district > town > village > city
+    const city = a.suburb || a.city_district || a.town || a.village || a.city || '';
+
+    // Country
+    const country = a.country || '';
+
+    return { state, district, city, country };
+  } catch {
+    return { state: '', district: '', city: '', country: '' };
+  }
+}
+
 export default function FileComplaint() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ text: '', state: '', district: '', city: '' });
+  const [form, setForm] = useState({ text: '', state: '', district: '', city: '', country: 'India' });
   const [mode, setMode] = useState('text'); // 'text' | 'voice'
   const [recording, setRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
@@ -21,8 +67,13 @@ export default function FileComplaint() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
   const [error, setError] = useState('');
+  const [geocoding, setGeocoding] = useState(false); // true while reverse geocoding
   const mediaRef = useRef(null);
   const chunksRef = useRef([]);
+
+  // Image capture state
+  const [capturedImages, setCapturedImages] = useState([]); // [{file, previewUrl, lat, lng}]
+  const cameraInputRef = useRef(null);
 
   const startRecording = async () => {
     try {
@@ -49,6 +100,68 @@ export default function FileComplaint() {
     setRecording(false);
   };
 
+  // Called when user picks an image from the camera/file picker
+  const handleImageCapture = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    const remaining = 5 - capturedImages.length;
+    const toAdd = files.slice(0, remaining);
+
+    // Geotag each image with the current GPS position
+    if (navigator.geolocation) {
+      setGeocoding(true);
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+
+          const newImages = toAdd.map((file) => ({
+            file,
+            previewUrl: URL.createObjectURL(file),
+            lat, lng,
+            accuracy: Math.round(accuracy),
+          }));
+          setCapturedImages((prev) => [...prev, ...newImages]);
+
+          // Reverse geocode once to auto-fill the form
+          const geo = await reverseGeocode(lat, lng);
+          setForm((prev) => ({
+            ...prev,
+            state: prev.state || geo.state,
+            district: prev.district || geo.district,
+            city: prev.city || geo.city,
+            country: prev.country || geo.country || 'India',
+          }));
+          setGeocoding(false);
+        },
+        () => {
+          // No GPS — still attach images
+          const newImages = toAdd.map((file) => ({
+            file,
+            previewUrl: URL.createObjectURL(file),
+            lat: null, lng: null,
+          }));
+          setCapturedImages((prev) => [...prev, ...newImages]);
+          setGeocoding(false);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    } else {
+      const newImages = toAdd.map((file) => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
+        lat: null, lng: null,
+      }));
+      setCapturedImages((prev) => [...prev, ...newImages]);
+    }
+
+    e.target.value = '';
+  };
+
+  const removeImage = (idx) => {
+    setCapturedImages((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   const handleSubmit = async () => {
     if (!form.text.trim() && !audioBlob) return setError('Please enter a complaint or record a voice note.');
     if (!form.state) return setError('Please select your state.');
@@ -65,9 +178,23 @@ export default function FileComplaint() {
       fd.append('state', form.state);
       fd.append('district', form.district);
       fd.append('city', form.city);
+      fd.append('country', form.country || 'India');
 
-      // Get geolocation if available
-      if (navigator.geolocation) {
+      // Append images and their specific metadata
+      const imageMetadata = [];
+      capturedImages.forEach(({ file, lat, lng }) => {
+        fd.append('images', file, file.name);
+        imageMetadata.push({ fileName: file.name, lat, lng });
+      });
+      fd.append('image_metadata', JSON.stringify(imageMetadata));
+
+      // Geolocation for the complaint itself
+      // Use the first image's geotag if available, otherwise ask the browser
+      const firstGeo = capturedImages.find((img) => img.lat);
+      if (firstGeo) {
+        fd.append('lat', firstGeo.lat);
+        fd.append('lng', firstGeo.lng);
+      } else if (navigator.geolocation) {
         await new Promise((res) => {
           navigator.geolocation.getCurrentPosition(
             (pos) => {
@@ -117,6 +244,12 @@ export default function FileComplaint() {
               <span className="text-[12px] font-semibold text-muted">Expected Resolution</span>
               <span className="text-[13px] font-bold text-text">{success.complaint.eta_days} days</span>
             </div>
+            {success.complaint.images?.length > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] font-semibold text-muted">Photos Attached</span>
+                <span className="text-[13px] font-bold text-green">{success.complaint.images.length} geotagged photo{success.complaint.images.length > 1 ? 's' : ''}</span>
+              </div>
+            )}
             {success.complaint.summary_en !== 'Audio complaint submitted.' && (
               <div className="pt-[16px] mt-[8px] border-t border-border">
                 <p className="text-[10px] font-bold text-burg uppercase tracking-[2px] mb-2 flex items-center gap-2 before:content-[''] before:w-[12px] before:h-[2px] before:bg-burg">AI Summary</p>
@@ -133,7 +266,7 @@ export default function FileComplaint() {
               Track Progress ↗
             </a>
             <button
-              onClick={() => { setSuccess(null); setForm({ text: '', state: '', district: '', city: '' }); setAudioBlob(null); setAudioUrl(''); setMode('text'); }}
+              onClick={() => { setSuccess(null); setForm({ text: '', state: '', district: '', city: '' }); setAudioBlob(null); setAudioUrl(''); setMode('text'); setCapturedImages([]); }}
               className="btn-ghost flex-1 py-[14px] text-[14px] border border-border hover:border-text hover:text-text bg-white"
             >
               + File Another
@@ -242,10 +375,88 @@ export default function FileComplaint() {
             )}
           </div>
 
+          {/* ── PHOTO CAPTURE ─────────────────────────────────────────────── */}
+          <div className="pt-[16px] border-t border-border/60">
+            <label className="block text-[12px] font-bold text-text uppercase tracking-wider mb-[12px] flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              Attach Photos
+              <span className="text-muted font-medium normal-case tracking-normal text-[11px]">(optional, up to 5 — geotagged automatically)</span>
+            </label>
+
+            {/* Hidden camera input */}
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              multiple
+              onChange={handleImageCapture}
+              className="hidden"
+            />
+
+            {/* Image preview grid */}
+            {capturedImages.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
+                {capturedImages.map((img, idx) => (
+                  <div key={idx} className="relative group rounded-[6px] overflow-hidden border border-border aspect-square bg-cream">
+                    <img src={img.previewUrl} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                    {/* Geotag indicator */}
+                    {img.lat && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[8px] font-mono px-1 py-0.5 flex items-center gap-0.5">
+                        <svg width="7" height="7" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        {img.lat.toFixed(4)}, {img.lng.toFixed(4)}
+                        {img.accuracy && <span className="ml-0.5 text-green-300">±{img.accuracy}m</span>}
+                      </div>
+                    )}
+                    {/* Remove button */}
+                    <button
+                      onClick={() => removeImage(idx)}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-burg text-white text-[10px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add photo button */}
+            {capturedImages.length < 5 && (
+              <button
+                type="button"
+                onClick={() => cameraInputRef.current?.click()}
+                className="w-full border-2 border-dashed border-border rounded-[6px] py-[16px] flex items-center justify-center gap-2 text-[13px] font-semibold text-muted hover:border-burg hover:text-burg hover:bg-burg-bg/20 transition-all bg-cream/50 cursor-pointer"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+                {capturedImages.length === 0 ? 'Open Camera / Choose Photo' : `Add More Photos (${capturedImages.length}/5)`}
+              </button>
+            )}
+            {capturedImages.length > 0 && (
+              <p className="text-[11px] text-muted mt-2 flex items-center gap-1">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+                </svg>
+                Photos are automatically tagged with your GPS coordinates for precise location mapping.
+              </p>
+            )}
+          </div>
+
           {/* Location */}
           <div className="pt-[16px] border-t border-border/60">
             <label className="block text-[12px] font-bold text-text uppercase tracking-wider mb-[12px] flex items-center gap-2">
               📍 Incident Location
+              {geocoding && (
+                <span className="flex items-center gap-1.5 text-burg font-semibold normal-case tracking-normal text-[11px]">
+                  <div className="w-3 h-3 border-[2px] border-burg/30 border-t-burg rounded-full animate-spin" />
+                  Detecting location from photo...
+                </span>
+              )}
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-[16px]">
               <div>
@@ -279,6 +490,16 @@ export default function FileComplaint() {
                   className="input text-[14px] bg-white border-border focus:border-burg"
                 />
               </div>
+              <div>
+                <label className="text-[11px] font-semibold text-muted mb-[6px] block">Country</label>
+                <input
+                  type="text"
+                  value={form.country}
+                  onChange={(e) => setForm({ ...form, country: e.target.value })}
+                  placeholder="e.g. India"
+                  className="input text-[14px] bg-white border-border focus:border-burg"
+                />
+              </div>
             </div>
           </div>
 
@@ -306,7 +527,7 @@ export default function FileComplaint() {
              
              <div className="mt-[16px] text-center">
                <p className="text-[11px] text-muted font-medium inline-flex items-center gap-1.5 bg-cream px-[12px] py-[6px] rounded-full border border-border">
-                  <span className="text-burg">🤖</span> Intelligent routing driven by GPT-4o
+                  <span className="text-burg">🤖</span> Intelligent AI-powered routing
                </p>
              </div>
           </div>

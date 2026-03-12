@@ -5,8 +5,8 @@ import RotatingEarth from '../components/ui/wireframe-dotted-globe';
 import { Mic, Bot, MapPin, Bell, BarChart, Trophy } from 'lucide-react';
 
 const FEATURES = [
-  { icon: <Mic size={26} />, title: 'Voice in Any Language', desc: 'Speak in Hindi, Tamil, Marathi, or 15+ Indian languages. Whisper AI transcribes instantly.' },
-  { icon: <Bot size={26} />, title: 'AI Auto-Classification', desc: 'GPT-4o classifies your complaint, assigns severity, and routes to the right department in seconds.' },
+  { icon: <Mic size={26} />, title: 'Voice in Any Language', desc: 'Speak in Hindi, Tamil, Marathi, or 15+ Indian languages. AI transcribes instantly.' },
+  { icon: <Bot size={26} />, title: 'AI Auto-Classification', desc: 'AI classifies your complaint, assigns severity, and routes to the right department in seconds.' },
   { icon: <MapPin size={26} />, title: 'Live Geo Heatmaps', desc: 'Municipal officers see real-time complaint density maps by district and department.' },
   { icon: <Bell size={26} />, title: 'WhatsApp Updates', desc: 'Get live status notifications directly on WhatsApp. No app download needed.' },
   { icon: <BarChart size={26} />, title: 'SLA Breach Alerts', desc: 'Complaints unresolved after 72 hours are flagged automatically to supervisors.' },

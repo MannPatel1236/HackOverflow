@@ -138,7 +138,7 @@ function generateTrackingId() {
  * Format status update WhatsApp message
  */
 function statusUpdateMessage(complaint) {
-  const trackUrl = `${process.env.BASE_URL}/track/${complaint.tracking_id}`;
+  const trackUrl = `${process.env.CLIENT_URL || process.env.BASE_URL}/track/${complaint.tracking_id}`;
   const statusEmoji = {
     Registered: '🔵',
     'Under Review': '🟡',

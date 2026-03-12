@@ -47,6 +47,7 @@ const complaintSchema = new mongoose.Schema(
     state: { type: String, default: '' },
     district: { type: String, default: '' },
     city: { type: String, default: '' },
+    country: { type: String, default: 'India' },
     lat: { type: Number, default: null },
     lng: { type: Number, default: null },
 
@@ -61,6 +62,19 @@ const complaintSchema = new mongoose.Schema(
 
     filed_at: { type: Date, default: Date.now },
     resolved_at: { type: Date, default: null },
+
+    // Geotagged images
+    images: [
+      {
+        url: { type: String },
+        lat: { type: Number, default: null },
+        lng: { type: Number, default: null },
+      },
+    ],
+
+    // Merging logic
+    master_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Complaint', default: null },
+    is_master: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
