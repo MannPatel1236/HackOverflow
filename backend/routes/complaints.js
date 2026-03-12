@@ -59,7 +59,7 @@ router.post('/file', userAuth, uploadFields, async (req, res) => {
       try {
         const { createClient } = require('@deepgram/sdk');
         const deepgram = createClient(process.env.DEEPGRAM_API_KEY || 'MISSING_KEY');
-        
+
         const { result, error } = await deepgram.listen.prerecorded.transcribeFile(
           fs.readFileSync(audioFile.path),
           {
@@ -70,10 +70,10 @@ router.post('/file', userAuth, uploadFields, async (req, res) => {
         );
 
         if (error) throw error;
-        
+
         complaintText = result?.results?.channels[0]?.alternatives[0]?.transcript || '';
         if (!complaintText) throw new Error('Empty transcript returned');
-        
+
       } catch (dgErr) {
         console.error('Deepgram Transcription failed:', dgErr.message || dgErr);
         complaintText = "Audio complaint submitted.";
@@ -299,7 +299,7 @@ router.get('/', adminAuth, async (req, res) => {
 
     // Pagination/Sort
     pipeline.push({ $sort: { filed_at: -1 } });
-    
+
     const countPipeline = [...pipeline, { $count: 'total' }];
     const countRes = await Complaint.aggregate(countPipeline);
     const total = countRes.length > 0 ? countRes[0].total : 0;
@@ -362,6 +362,9 @@ router.patch('/:id/status', adminAuth, async (req, res) => {
 
     await complaint.save();
 
+    // Emit live update to tracking page and dashboards
+    const io = req.app.get('io');
+
     // DUPLICATE PROPAGATION LOGIC
     if (complaint.is_master) {
       const children = await Complaint.find({ master_id: complaint._id });
@@ -399,9 +402,6 @@ router.patch('/:id/status', adminAuth, async (req, res) => {
       }
       console.log(`Propagated status ${status} to ${children.length} child complaints`);
     }
-
-    // Emit live update to tracking page and dashboards
-    const io = req.app.get('io');
     if (io) {
       io.to(`complaint_${complaint.tracking_id}`).emit('status_update', {
         tracking_id: complaint.tracking_id,

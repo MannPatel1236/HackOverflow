@@ -21,43 +21,43 @@ const STATE_CENTERS = {
 const SvgIcons = {
   clipboard: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
     </svg>
   ),
   check: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
     </svg>
   ),
   clock: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
     </svg>
   ),
   alert: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
     </svg>
   ),
   map: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /><line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" />
     </svg>
   ),
   refresh: (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+      <polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
     </svg>
   ),
   pin: (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" />
     </svg>
   ),
   empty: (
     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40">
-      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
     </svg>
   ),
 };
@@ -94,21 +94,30 @@ export default function StateAdminDashboard() {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    // Fetch complaints first — always show them regardless of stats/map failures
     try {
-      const [complaintsRes, mapRes, statsRes] = await Promise.all([
-        getComplaints({ ...filters, page, limit: 15 }),
-        getMapData({ state: stateName }),
-        getStateStats(stateName),
-      ]);
+      const complaintsRes = await getComplaints({ ...filters, page, limit: 15 });
       setComplaints(complaintsRes.data.complaints);
       setPagination(complaintsRes.data.pagination);
-      setMapData(mapRes.data.data);
-      setStats(statsRes.data);
       setLastUpdated(new Date());
     } catch (e) {
       console.error('Complaints fetch error:', e);
     } finally {
       setLoading(false);
+    }
+    // Fetch map data (non-critical)
+    try {
+      const mapRes = await getMapData({ state: stateName });
+      setMapData(mapRes.data.data);
+    } catch (e) {
+      console.warn('Map data fetch failed (non-critical):', e.message);
+    }
+    // Fetch stats (non-critical)
+    try {
+      const statsRes = await getStateStats(stateName);
+      setStats(statsRes.data);
+    } catch (e) {
+      console.warn('Stats fetch failed (non-critical):', e.message);
     }
     // Fetch tasks separately so failure here doesn't hide complaints
     try {
@@ -230,32 +239,32 @@ export default function StateAdminDashboard() {
 
             <div className="flex flex-col gap-1 p-4 border border-border rounded-[6px] bg-white shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all">
               <div className="flex justify-between items-center mb-1">
-                 <div className="text-[11px] font-bold text-muted uppercase tracking-wider">Total Volume</div>
-                 <div className="opacity-40 text-muted">{SvgIcons.clipboard}</div>
+                <div className="text-[11px] font-bold text-muted uppercase tracking-wider">Total Volume</div>
+                <div className="opacity-40 text-muted">{SvgIcons.clipboard}</div>
               </div>
               <div className="font-serif text-[28px] font-black text-text leading-none">{stats.stats.total}</div>
             </div>
 
             <div className="flex flex-col gap-1 p-4 border border-border rounded-[6px] bg-green-bg shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all">
               <div className="flex justify-between items-center mb-1">
-                 <div className="text-[11px] font-bold text-green uppercase tracking-wider">Resolution Rate</div>
-                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 text-green"><polyline points="20 6 9 17 4 12"/></svg>
+                <div className="text-[11px] font-bold text-green uppercase tracking-wider">Resolution Rate</div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 text-green"><polyline points="20 6 9 17 4 12" /></svg>
               </div>
               <div className="font-serif text-[28px] font-black text-green leading-none">{stats.stats.resolve_pct}%</div>
             </div>
 
             <div className="flex flex-col gap-1 p-4 border border-border rounded-[6px] bg-amber-bg shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all">
               <div className="flex justify-between items-center mb-1">
-                 <div className="text-[11px] font-bold text-amber uppercase tracking-wider">Active Pending</div>
-                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 text-amber"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <div className="text-[11px] font-bold text-amber uppercase tracking-wider">Active Pending</div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 text-amber"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
               </div>
               <div className="font-serif text-[28px] font-black text-amber leading-none">{stats.stats.pending}</div>
             </div>
 
             <div className="flex flex-col gap-1 p-4 border border-burg/20 rounded-[6px] bg-burg-bg shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all">
               <div className="flex justify-between items-center mb-1">
-                 <div className="text-[11px] font-bold text-burg uppercase tracking-wider">SLA Breaches</div>
-                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 text-burg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div className="text-[11px] font-bold text-burg uppercase tracking-wider">SLA Breaches</div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 text-burg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
               </div>
               <div className="font-serif text-[28px] font-black text-burg leading-none">{stats.stats.sla_breaches}</div>
             </div>
@@ -273,9 +282,9 @@ export default function StateAdminDashboard() {
                   {SvgIcons.map} Spatial Grievance Heatmap
                 </h2>
                 <div className="flex items-center gap-[12px] text-[10px] font-bold uppercase tracking-wider bg-off px-[10px] py-[6px] rounded border border-border">
-                   <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#1d4ed8]"></span> Standard</div>
-                   <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#7a5200]"></span> High</div>
-                   <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-burg"></span> Critical</div>
+                  <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#1d4ed8]"></span> Standard</div>
+                  <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#7a5200]"></span> High</div>
+                  <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-burg"></span> Critical</div>
                 </div>
               </div>
               <div className="flex-1 w-full bg-cream relative z-10 block">
@@ -315,16 +324,16 @@ export default function StateAdminDashboard() {
                             <span className="font-bold text-text">{d.department || 'Other'}</span>
                           </div>
                           <div className="flex justify-between items-center text-[12px] mb-[6px]">
-                             <span className="text-muted font-medium">Resolution Rate:</span>
-                             <span className="font-bold text-green bg-green-bg px-1 rounded">{Math.round(d.resolve_pct)}%</span>
+                            <span className="text-muted font-medium">Resolution Rate:</span>
+                            <span className="font-bold text-green bg-green-bg px-1 rounded">{Math.round(d.resolve_pct)}%</span>
                           </div>
                           {d.sla_breaches > 0 && (
-                             <div className="mt-[8px] pt-[6px] border-t border-border">
-                                <span className="text-[11px] font-bold uppercase tracking-wider text-burg flex items-center gap-1">
-                                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                   {d.sla_breaches} SLA Breaches Active
-                                </span>
-                             </div>
+                            <div className="mt-[8px] pt-[6px] border-t border-border">
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-burg flex items-center gap-1">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+                                {d.sla_breaches} SLA Breaches Active
+                              </span>
+                            </div>
                           )}
                         </div>
                       </Popup>
@@ -357,8 +366,8 @@ export default function StateAdminDashboard() {
               <div className="absolute bottom-[20px] left-[20px] right-[20px] max-h-[40%] bg-white/95 backdrop-blur-md rounded-[8px] shadow-[0_12px_48px_rgba(0,0,0,0.15)] border border-border z-30 flex flex-col animate-fade-in overflow-hidden">
                 <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-border bg-white sticky top-0 z-10">
                   <h3 className="font-bold text-[15px] text-text flex items-center gap-2">
-                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                     <span className="uppercase tracking-wide">{selectedDistrict} District</span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                    <span className="uppercase tracking-wide">{selectedDistrict} District</span>
                   </h3>
                   <button onClick={() => setSelectedDistrict(null)} className="text-[11px] font-bold text-muted uppercase tracking-wider hover:text-burg px-2 py-1 bg-off rounded border border-border cursor-pointer transition-colors">Close ✕</button>
                 </div>
@@ -385,7 +394,7 @@ export default function StateAdminDashboard() {
                 <span className="w-[12px] h-[2px] bg-burg"></span>
                 <h2 className="text-[13px] font-bold text-text uppercase tracking-wider">Filter Registry</h2>
               </div>
-              
+
               {/* Role Toggle for Admin (Complaints vs Tasks) */}
               <div className="flex bg-white rounded-[6px] p-1 border border-border mb-3">
                 <button onClick={() => setViewingTasks(false)} className={`flex-1 text-[12px] py-1.5 font-bold rounded ${!viewingTasks ? 'bg-burg text-white shadow' : 'text-muted'}`}>Complaints</button>
@@ -412,78 +421,78 @@ export default function StateAdminDashboard() {
               </div>
             </div>
 
-             {/* Scrollable List */}
-             <div className="flex-1 overflow-y-auto bg-cream/30 p-[12px] space-y-[12px]">
-                {loading && !viewingTasks ? (
-                  <div className="py-[40px] flex flex-col items-center justify-center text-center">
-                     <div className="w-[30px] h-[30px] border-[2px] border-burg/30 border-t-burg rounded-full animate-spin mb-[12px]"></div>
-                     <span className="text-[12px] font-bold text-muted uppercase tracking-wider">Syncing Registry...</span>
+            {/* Scrollable List */}
+            <div className="flex-1 overflow-y-auto bg-cream/30 p-[12px] space-y-[12px]">
+              {loading && !viewingTasks ? (
+                <div className="py-[40px] flex flex-col items-center justify-center text-center">
+                  <div className="w-[30px] h-[30px] border-[2px] border-burg/30 border-t-burg rounded-full animate-spin mb-[12px]"></div>
+                  <span className="text-[12px] font-bold text-muted uppercase tracking-wider">Syncing Registry...</span>
+                </div>
+              ) : !viewingTasks && complaints.length === 0 ? (
+                <div className="py-[60px] flex flex-col items-center justify-center text-center px-[20px]">
+                  <div className="w-[48px] h-[48px] rounded-full bg-cream border border-border flex items-center justify-center mb-[12px] opacity-60">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12" /><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" /></svg>
                   </div>
-                ) : !viewingTasks && complaints.length === 0 ? (
-                  <div className="py-[60px] flex flex-col items-center justify-center text-center px-[20px]">
-                     <div className="w-[48px] h-[48px] rounded-full bg-cream border border-border flex items-center justify-center mb-[12px] opacity-60">
-                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-                     </div>
-                     <span className="text-[13px] font-bold text-text mb-[4px]">No Matches Found</span>
-                     <p className="text-[12px] text-muted leading-relaxed">Adjust your filter parameters to see active complaints.</p>
-                  </div>
-                ) : !viewingTasks ? (
-                  complaints.map((c) => (
-                    <ComplaintCard key={c._id} complaint={c} showActions onStatusChange={handleStatusChange} onTaskCreate={handleOpenTaskModal} />
-                  ))
-                ) : tasks.length === 0 ? (
-                    <div className="p-4 text-center text-muted text-[13px] mt-10">No Partner tasks available.</div>
-                ) : (
-                    tasks.map(task => (
-                      <div key={task._id} className="p-4 bg-white border border-border rounded shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-                        <div className="flex gap-2 justify-between mb-2">
-                          <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${task.status === 'Open' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>{task.status}</span>
-                          <span className="text-[12px] font-mono font-bold text-indigo-700">₹{task.budget_estimate?.toLocaleString()}</span>
-                        </div>
-                        <h4 className="font-bold text-[14px] text-text mb-1 leading-snug">{task.title}</h4>
-                        
-                        <div className="mt-3 pt-3 border-t border-border">
-                          <h5 className="text-[11px] font-bold text-muted uppercase mb-2">Applications ({task.applications?.length || 0})</h5>
-                          <div className="space-y-2">
-                            {task.applications?.map(app => (
-                              <div key={app._id} className="flex justify-between items-center bg-cream p-2.5 rounded-[4px] border border-border">
-                                <div>
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${app.role === 'Sponsor' ? 'bg-green-bg text-green border border-green/20' : 'bg-burg-bg text-burg border border-burg/20'}`}>{app.role}</span>
-                                    <span className="font-mono text-[12px] font-bold text-text">₹{app.bid_amount?.toLocaleString()}</span>
-                                    <span className="text-[11px] font-bold text-navy ml-1">{app.user_id?.name || 'Unknown Partner'}</span>
-                                  </div>
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <p className="text-[11px] text-muted italic line-clamp-1 pr-2">{app.message || 'No message provided'}</p>
-                                    {app.user_id?.phone && <span className="text-[10px] text-muted font-mono">{app.user_id.phone}</span>}
-                                  </div>
+                  <span className="text-[13px] font-bold text-text mb-[4px]">No Matches Found</span>
+                  <p className="text-[12px] text-muted leading-relaxed">Adjust your filter parameters to see active complaints.</p>
+                </div>
+              ) : !viewingTasks ? (
+                complaints.map((c) => (
+                  <ComplaintCard key={c._id} complaint={c} showActions onStatusChange={handleStatusChange} onTaskCreate={handleOpenTaskModal} />
+                ))
+              ) : tasks.length === 0 ? (
+                <div className="p-4 text-center text-muted text-[13px] mt-10">No Partner tasks available.</div>
+              ) : (
+                tasks.map(task => (
+                  <div key={task._id} className="p-4 bg-white border border-border rounded shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                    <div className="flex gap-2 justify-between mb-2">
+                      <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${task.status === 'Open' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>{task.status}</span>
+                      <span className="text-[12px] font-mono font-bold text-indigo-700">₹{task.budget_estimate?.toLocaleString()}</span>
+                    </div>
+                    <h4 className="font-bold text-[14px] text-text mb-1 leading-snug">{task.title}</h4>
 
-                                </div>
-                                {app.status === 'Pending' && task.status === 'Open' ? (
-                                  <button 
-                                    onClick={async () => {
-                                      try {
-                                        await approveTaskApplication(task._id, { application_id: app._id });
-                                        fetchData();
-                                        alert('Application Approved! Task Assigned.');
-                                      } catch(e) { alert('Error approving application'); }
-                                    }}
-                                    className="bg-indigo-600 text-white text-[11px] px-3 py-1.5 rounded-[4px] font-bold hover:bg-indigo-700 shrink-0 shadow-sm"
-                                  >
-                                    Accept
-                                  </button>
-                                ) : (
-                                  <span className={`text-[11px] font-bold uppercase tracking-wider shrink-0 ${app.status === 'Approved' ? 'text-green' : 'text-muted'}`}>{app.status}</span>
-                                )}
+                    <div className="mt-3 pt-3 border-t border-border">
+                      <h5 className="text-[11px] font-bold text-muted uppercase mb-2">Applications ({task.applications?.length || 0})</h5>
+                      <div className="space-y-2">
+                        {task.applications?.map(app => (
+                          <div key={app._id} className="flex justify-between items-center bg-cream p-2.5 rounded-[4px] border border-border">
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${app.role === 'Sponsor' ? 'bg-green-bg text-green border border-green/20' : 'bg-burg-bg text-burg border border-burg/20'}`}>{app.role}</span>
+                                <span className="font-mono text-[12px] font-bold text-text">₹{app.bid_amount?.toLocaleString()}</span>
+                                <span className="text-[11px] font-bold text-navy ml-1">{app.user_id?.name || 'Unknown Partner'}</span>
                               </div>
-                            ))}
-                            {task.applications?.length === 0 && <span className="text-[11px] text-muted flex items-center gap-1.5"><span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span> Waiting for bids...</span>}
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="text-[11px] text-muted italic line-clamp-1 pr-2">{app.message || 'No message provided'}</p>
+                                {app.user_id?.phone && <span className="text-[10px] text-muted font-mono">{app.user_id.phone}</span>}
+                              </div>
+
+                            </div>
+                            {app.status === 'Pending' && task.status === 'Open' ? (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await approveTaskApplication(task._id, { application_id: app._id });
+                                    fetchData();
+                                    alert('Application Approved! Task Assigned.');
+                                  } catch (e) { alert('Error approving application'); }
+                                }}
+                                className="bg-indigo-600 text-white text-[11px] px-3 py-1.5 rounded-[4px] font-bold hover:bg-indigo-700 shrink-0 shadow-sm"
+                              >
+                                Accept
+                              </button>
+                            ) : (
+                              <span className={`text-[11px] font-bold uppercase tracking-wider shrink-0 ${app.status === 'Approved' ? 'text-green' : 'text-muted'}`}>{app.status}</span>
+                            )}
                           </div>
-                        </div>
+                        ))}
+                        {task.applications?.length === 0 && <span className="text-[11px] text-muted flex items-center gap-1.5"><span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span> Waiting for bids...</span>}
                       </div>
-                    ))
-                )}
-             </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
 
             {/* Footer Pagination Header Fixed */}
             {pagination.pages > 1 && (
@@ -515,24 +524,24 @@ export default function StateAdminDashboard() {
           <div className="bg-white rounded-[12px] w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
             <div className="px-[24px] py-[20px] border-b border-border bg-off flex justify-between items-center">
               <h3 className="font-bold text-[16px] text-text tracking-wide flex items-center gap-2">
-                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg>
-                 Create Partner Task
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2" /><rect x="9" y="9" width="6" height="6" /></svg>
+                Create Partner Task
               </h3>
               <button onClick={() => setShowTaskModal(false)} className="text-muted hover:text-burg font-bold text-[20px] leading-none">×</button>
             </div>
             <form onSubmit={handleCreateTask} className="p-[24px] space-y-4">
               <div>
                 <label className="block text-[11px] font-bold text-muted uppercase mb-1">Task Title</label>
-                <input type="text" value={taskForm.title} onChange={e => setTaskForm({...taskForm, title: e.target.value})} className="input w-full bg-cream focus:border-indigo-400" required />
+                <input type="text" value={taskForm.title} onChange={e => setTaskForm({ ...taskForm, title: e.target.value })} className="input w-full bg-cream focus:border-indigo-400" required />
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-muted uppercase mb-1">Public Description</label>
-                <textarea value={taskForm.description} onChange={e => setTaskForm({...taskForm, description: e.target.value})} className="input w-full bg-cream focus:border-indigo-400 min-h-[100px]" required />
+                <textarea value={taskForm.description} onChange={e => setTaskForm({ ...taskForm, description: e.target.value })} className="input w-full bg-cream focus:border-indigo-400 min-h-[100px]" required />
                 <p className="text-[10px] text-muted mt-1 leading-tight">Partners will see this description to formulate their bids.</p>
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-muted uppercase mb-1">Estimated Budget (₹)</label>
-                <input type="number" value={taskForm.budget_estimate} onChange={e => setTaskForm({...taskForm, budget_estimate: e.target.value})} className="input w-full bg-cream focus:border-indigo-400" required placeholder="e.g. 50000" min="1" />
+                <input type="number" value={taskForm.budget_estimate} onChange={e => setTaskForm({ ...taskForm, budget_estimate: e.target.value })} className="input w-full bg-cream focus:border-indigo-400" required placeholder="e.g. 50000" min="1" />
                 <p className="text-[10px] text-muted mt-1 leading-tight">This sets expectations for Contractors. Sponsors will know the funding target.</p>
               </div>
               <div className="pt-4 flex gap-3 border-t border-border mt-6">
