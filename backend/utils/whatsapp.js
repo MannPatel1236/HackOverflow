@@ -9,17 +9,33 @@ const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TO
  */
 async function sendWhatsApp(to, body) {
   try {
-    // Ensure 'whatsapp:' prefix
-    const toFormatted = to.startsWith('whatsapp:') ? to : `whatsapp:${to}`;
+    // Ensure 'whatsapp:' prefix and clean the number
+    let cleanNumber = to.replace(/[^\d+]/g, '');
+    if (cleanNumber.length === 10 && !cleanNumber.startsWith('+')) {
+      cleanNumber = `+91${cleanNumber}`;
+    }
+    
+    const toFormatted = cleanNumber.startsWith('whatsapp:') ? cleanNumber : `whatsapp:${cleanNumber}`;
+    
+    console.log(`Attempting to send WhatsApp message to: ${toFormatted}`);
+    
     const message = await client.messages.create({
       from: process.env.TWILIO_WHATSAPP_NUMBER,
       to: toFormatted,
       body,
     });
+    
+    console.log(`WhatsApp message sent! SID: ${message.sid}`);
     return message.sid;
   } catch (err) {
-    console.error('WhatsApp send error:', err.message);
-    console.error('If you are using Twilio Sandbox, ensure you have opted in by sending a message to the Sandbox number first.');
+    console.error('CRITICAL: WhatsApp send failed!');
+    console.error('Error Message:', err.message);
+    console.error('Twilio Error Code:', err.code);
+    
+    if (err.code === 63003 || err.code === 63015) {
+      console.error('HINT: This number likely hasn\'t joined your Twilio Sandbox. Ask them to send "join <your-sandbox-keyword>" to your Twilio number.');
+    }
+    
     // Fail gracefully so the app can continue working (e.g. returning dev_otp)
     return null;
   }

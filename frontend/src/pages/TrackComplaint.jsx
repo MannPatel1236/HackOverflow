@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import StatusTimeline from '../components/StatusTimeline';
 import { trackComplaint } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import { Search, Map, Trash2, Droplets, Zap, ClipboardList, Smartphone, Globe } from 'lucide-react';
 
 const SEVERITY_COLORS = {
@@ -14,10 +15,13 @@ const SEVERITY_COLORS = {
 
 export default function TrackComplaint() {
   const { trackingId } = useParams();
+  const { admin } = useAuth();
   const [complaint, setComplaint] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState(new Date());
+
+  const dashboardLink = admin ? '/admin' : '/dashboard';
 
   useEffect(() => {
     fetchComplaint();
@@ -73,7 +77,7 @@ export default function TrackComplaint() {
           <div className="w-[64px] h-[64px] mx-auto bg-off rounded-full flex items-center justify-center text-[28px] mb-[16px] border border-border"><Search size={28} /></div>
           <h2 className="font-serif text-[24px] font-bold text-text mb-[8px]">{error}</h2>
           <p className="text-[14px] text-muted leading-[1.6] mb-[24px]">We couldn't find a complaint with that tracking ID. Please verify the ID and try again.</p>
-          <Link to="/dashboard" className="btn-primary inline-flex px-[24px]">← Return to Dashboard</Link>
+          <Link to={dashboardLink} className="btn-primary inline-flex px-[24px]">← Return to Dashboard</Link>
         </div>
       </div>
     );
@@ -196,7 +200,7 @@ export default function TrackComplaint() {
 
         {/* Actions Bottom */}
         <div className="flex flex-col sm:flex-row gap-[12px] pt-[8px]">
-          <Link to="/dashboard" className="btn-ghost flex-1 py-[14px] text-center text-[13px] font-bold border border-border bg-white hover:border-text hover:text-text">
+          <Link to={dashboardLink} className="btn-ghost flex-1 py-[14px] text-center text-[13px] font-bold border border-border bg-white hover:border-text hover:text-text">
             ← Back to Dashboard
           </Link>
           <button
