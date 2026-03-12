@@ -1,7 +1,25 @@
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { fileComplaint } from '../utils/api';
+import { 
+  Shield, 
+  Camera, 
+  Mic, 
+  Type, 
+  MapPin, 
+  ChevronLeft, 
+  Trash2, 
+  Zap, 
+  AlertTriangle, 
+  CheckCircle2, 
+  ArrowRight,
+  Info,
+  Globe,
+  Loader2,
+  X
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const INDIAN_STATES = [
   'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat',
@@ -11,7 +29,6 @@ const INDIAN_STATES = [
   'Delhi','Jammu and Kashmir','Ladakh',
 ];
 
-// Normalize OSM state names to our dropdown values
 const STATE_ALIASES = {
   'maharashtra': 'Maharashtra', 'karnataka': 'Karnataka', 'tamil nadu': 'Tamil Nadu',
   'delhi': 'Delhi', 'gujarat': 'Gujarat', 'rajasthan': 'Rajasthan',
@@ -26,9 +43,6 @@ const STATE_ALIASES = {
   'arunachal pradesh': 'Arunachal Pradesh',
 };
 
-/**
- * Reverse geocode lat/lng → { state, district, city } using OSM Nominatim (free, no key).
- */
 async function reverseGeocode(lat, lng) {
   try {
     const res = await fetch(
@@ -37,20 +51,11 @@ async function reverseGeocode(lat, lng) {
     );
     const data = await res.json();
     const a = data.address || {};
-
-    // Resolve state
     const rawState = (a.state || '').toLowerCase();
     const state = STATE_ALIASES[rawState] || '';
-
-    // District: OSM uses county / state_district / district
     const district = a.county || a.state_district || a.district || '';
-
-    // City: suburb > city_district > town > village > city
     const city = a.suburb || a.city_district || a.town || a.village || a.city || '';
-
-    // Country
     const country = a.country || '';
-
     return { state, district, city, country };
   } catch {
     return { state: '', district: '', city: '', country: '' };
@@ -67,12 +72,11 @@ export default function FileComplaint() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
   const [error, setError] = useState('');
-  const [geocoding, setGeocoding] = useState(false); // true while reverse geocoding
+  const [geocoding, setGeocoding] = useState(false);
   const mediaRef = useRef(null);
   const chunksRef = useRef([]);
 
-  // Image capture state
-  const [capturedImages, setCapturedImages] = useState([]); // [{file, previewUrl, lat, lng}]
+  const [capturedImages, setCapturedImages] = useState([]); 
   const cameraInputRef = useRef(null);
 
   const startRecording = async () => {
@@ -91,7 +95,7 @@ export default function FileComplaint() {
       mr.start();
       setRecording(true);
     } catch {
-      setError('Microphone access denied. Please allow mic access and try again.');
+      setError('TRANSMISSION_ERROR: Microphone access denied.');
     }
   };
 
@@ -100,21 +104,17 @@ export default function FileComplaint() {
     setRecording(false);
   };
 
-  // Called when user picks an image from the camera/file picker
   const handleImageCapture = (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
-
     const remaining = 5 - capturedImages.length;
     const toAdd = files.slice(0, remaining);
 
-    // Geotag each image with the current GPS position
     if (navigator.geolocation) {
       setGeocoding(true);
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           const { latitude: lat, longitude: lng, accuracy } = pos.coords;
-
           const newImages = toAdd.map((file) => ({
             file,
             previewUrl: URL.createObjectURL(file),
@@ -122,8 +122,6 @@ export default function FileComplaint() {
             accuracy: Math.round(accuracy),
           }));
           setCapturedImages((prev) => [...prev, ...newImages]);
-
-          // Reverse geocode once to auto-fill the form
           const geo = await reverseGeocode(lat, lng);
           setForm((prev) => ({
             ...prev,
@@ -135,7 +133,6 @@ export default function FileComplaint() {
           setGeocoding(false);
         },
         () => {
-          // No GPS — still attach images
           const newImages = toAdd.map((file) => ({
             file,
             previewUrl: URL.createObjectURL(file),
@@ -154,7 +151,6 @@ export default function FileComplaint() {
       }));
       setCapturedImages((prev) => [...prev, ...newImages]);
     }
-
     e.target.value = '';
   };
 
@@ -163,8 +159,8 @@ export default function FileComplaint() {
   };
 
   const handleSubmit = async () => {
-    if (!form.text.trim() && !audioBlob) return setError('Please enter a complaint or record a voice note.');
-    if (!form.state) return setError('Please select your state.');
+    if (!form.text.trim() && !audioBlob) return setError('GRIEVANCE_EMPTY: Please provide details.');
+    if (!form.state) return setError('LOCATION_REQUIRED: Please select state.');
     setError('');
     setLoading(true);
 
@@ -180,7 +176,6 @@ export default function FileComplaint() {
       fd.append('city', form.city);
       fd.append('country', form.country || 'India');
 
-      // Append images and their specific metadata
       const imageMetadata = [];
       capturedImages.forEach(({ file, lat, lng }) => {
         fd.append('images', file, file.name);
@@ -188,8 +183,6 @@ export default function FileComplaint() {
       });
       fd.append('image_metadata', JSON.stringify(imageMetadata));
 
-      // Geolocation for the complaint itself
-      // Use the first image's geotag if available, otherwise ask the browser
       const firstGeo = capturedImages.find((img) => img.lat);
       if (firstGeo) {
         fd.append('lat', firstGeo.lat);
@@ -210,7 +203,7 @@ export default function FileComplaint() {
       const result = await fileComplaint(fd);
       setSuccess(result.data);
     } catch (e) {
-      setError(e.response?.data?.error || 'Failed to file complaint. Please try again.');
+      setError(e.response?.data?.error || 'UPLINK_FAILED: Internal server error.');
     } finally {
       setLoading(false);
     }
@@ -218,322 +211,368 @@ export default function FileComplaint() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-cream flex flex-col">
+      <div className="min-h-screen bg-cream flex flex-col font-sans">
         <Navbar />
-        <div className="max-w-lg mx-auto px-6 py-16 text-center animate-fade-in w-full">
-          <div className="w-[80px] h-[80px] mx-auto bg-green-bg border-2 border-green rounded-full flex items-center justify-center text-4xl mb-6 shadow-[0_8px_24px_rgba(22,84,58,0.15)]">✅</div>
-          <h2 className="font-serif text-[32px] font-bold text-text mb-2">Complaint Registered</h2>
-          <p className="text-[14px] text-muted mb-8 max-w-[360px] mx-auto">Your grievance has been securely received and is being processed by our AI systems.</p>
+        <main className="flex-1 flex items-center justify-center p-6 py-20">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-2xl bg-white border border-border rounded-3xl overflow-hidden shadow-2xl"
+          >
+            <div className="bg-navy p-12 text-center text-white relative overflow-hidden">
+               <div className="absolute top-0 left-0 w-full h-1 bg-burg" />
+               <motion.div 
+                 initial={{ y: 20, opacity: 0 }}
+                 animate={{ y: 0, opacity: 1 }}
+                 transition={{ delay: 0.2 }}
+                 className="w-20 h-20 bg-burg rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl shadow-burg/20"
+               >
+                 <CheckCircle2 size={40} />
+               </motion.div>
+               <h2 className="text-4xl font-extrabold tracking-tight uppercase mb-4">Uplink Successful</h2>
+               <p className="text-white/60 font-bold text-xs uppercase tracking-[0.3em]">Case Ref: {success.tracking_id}</p>
+            </div>
 
-          <div className="card p-[28px] text-left space-y-[16px] mb-8 bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
-            <div className="flex items-center justify-between pb-[12px] border-b border-border">
-              <span className="text-[11px] font-bold text-muted uppercase tracking-wider">Tracking ID</span>
-              <span className="font-mono font-bold text-text bg-off px-2 py-1 rounded-[4px] border border-border text-[14px] tracking-wide">{success.tracking_id}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] font-semibold text-muted">Department</span>
-              <span className="text-[13px] font-bold text-text bg-cream px-2 py-0.5 rounded-[4px] border border-border">{success.complaint.department}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] font-semibold text-muted">Severity</span>
-              <span className={`text-[11px] font-bold uppercase tracking-wider px-[8px] py-[2px] rounded-[4px] border ${success.complaint.severity === 'Critical' ? 'bg-burg-bg text-burg border-burg/20' : success.complaint.severity === 'High' ? 'bg-amber-bg text-amber border-amber/20' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-                {success.complaint.severity}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] font-semibold text-muted">Expected Resolution</span>
-              <span className="text-[13px] font-bold text-text">{success.complaint.eta_days} days</span>
-            </div>
-            {success.complaint.images?.length > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] font-semibold text-muted">Photos Attached</span>
-                <span className="text-[13px] font-bold text-green">{success.complaint.images.length} geotagged photo{success.complaint.images.length > 1 ? 's' : ''}</span>
-              </div>
-            )}
-            {success.complaint.summary_en !== 'Audio complaint submitted.' && (
-              <div className="pt-[16px] mt-[8px] border-t border-border">
-                <p className="text-[10px] font-bold text-burg uppercase tracking-[2px] mb-2 flex items-center gap-2 before:content-[''] before:w-[12px] before:h-[2px] before:bg-burg">AI Summary</p>
-                <p className="text-[14px] text-text font-serif leading-[1.6] bg-cream p-[12px] rounded-[4px] border border-border">{success.complaint.summary_en}</p>
-              </div>
-            )}
-          </div>
+            <div className="p-12 space-y-12">
+               <div className="grid grid-cols-2 gap-8">
+                  <div>
+                    <p className="text-[10px] font-black text-dim uppercase tracking-widest mb-2">Department</p>
+                    <p className="text-lg font-extrabold text-navy tracking-tight">{success.complaint.department}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-dim uppercase tracking-widest mb-2">Priority Level</p>
+                    <span className={`inline-block px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest border ${success.complaint.severity === 'urgent' ? 'border-burg text-burg bg-burg/5' : 'border-dim text-dim bg-off'}`}>
+                      {success.complaint.severity}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-dim uppercase tracking-widest mb-2">Response ETA</p>
+                    <p className="text-lg font-extrabold text-navy tracking-tight">{success.complaint.eta_days} Days</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-dim uppercase tracking-widest mb-2">Tele-Verification</p>
+                    <p className="text-lg font-extrabold text-green-600 tracking-tight">Active</p>
+                  </div>
+               </div>
 
-          <div className="flex flex-col sm:flex-row gap-[12px] justify-center">
-            <a
-              href={`/track/${success.tracking_id}`}
-              className="btn-primary flex-1 py-[14px] text-center text-[14px] shadow-[0_4px_14px_rgba(139,26,26,0.25)]"
-            >
-              Track Progress ↗
-            </a>
-            <button
-              onClick={() => { setSuccess(null); setForm({ text: '', state: '', district: '', city: '' }); setAudioBlob(null); setAudioUrl(''); setMode('text'); setCapturedImages([]); }}
-              className="btn-ghost flex-1 py-[14px] text-[14px] border border-border hover:border-text hover:text-text bg-white"
-            >
-              + File Another
-            </button>
-          </div>
-        </div>
+               <div className="bg-off rounded-2xl p-8 border border-border relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 text-navy/[0.03] rotate-12"><Zap size={100} /></div>
+                  <h4 className="text-[10px] font-black text-burg uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <Zap size={12} className="fill-burg" /> AI Intelligence Summary
+                  </h4>
+                  <p className="text-navy text-base leading-relaxed font-sans relative z-10">
+                    {success.complaint.summary_en}
+                  </p>
+               </div>
+
+               <div className="flex flex-col sm:flex-row gap-4">
+                  <Link to={`/track/${success.tracking_id}`} className="btn-primary flex-1 py-5">
+                    Enter Track Portal <ArrowRight size={20} />
+                  </Link>
+                  <button onClick={() => setSuccess(null)} className="btn-secondary flex-1 py-5">
+                    File Another Log
+                  </button>
+               </div>
+            </div>
+          </motion.div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-cream flex flex-col">
+    <div className="min-h-screen bg-cream flex flex-col font-sans">
       <Navbar />
-      <div className="max-w-2xl mx-auto px-6 py-12 w-full">
-        <div className="mb-[24px]">
-          <div className="text-[10px] font-bold tracking-[3px] uppercase text-burg mb-2 flex items-center gap-[10px] before:content-[''] before:w-6 before:h-[2px] before:bg-burg">
-            Citizen Grievance
-          </div>
-          <h1 className="font-serif text-[32px] font-bold text-text leading-[1.2] mb-2">File a New Complaint</h1>
-          <p className="text-[14px] text-muted max-w-[500px]">
-            Describe your civic issue in detail. Our AI will automatically classify, translate, and route it to the appropriate municipal department.
-          </p>
-        </div>
+      <main className="max-w-4xl mx-auto px-6 py-20 w-full">
+        <header className="mb-16">
+           <div className="flex items-center gap-3 mb-6">
+              <div className="w-1.5 h-10 bg-burg rounded-full" />
+              <h1 className="text-5xl font-extrabold text-navy tracking-tight uppercase">File Grievance</h1>
+           </div>
+           <p className="text-xl text-muted leading-relaxed max-w-2xl">
+              Initialize a high-fidelity data log. Our neural infrastructure will analyze, transcribe, and route your report to regional command.
+           </p>
+        </header>
 
-        <div className="card p-[28px] space-y-[24px] bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
-          {/* Mode Switcher */}
-          <div>
-            <label className="block text-[12px] font-bold text-text uppercase tracking-wider mb-[12px]">Submission Method</label>
-            <div className="grid grid-cols-2 gap-[12px]">
-              {[
-                { key: 'text', label: '✎ Text Description', desc: 'Type in any language' },
-                { key: 'voice', label: '🎤 Voice Recording', desc: 'Speak your issue' },
-              ].map((m) => (
-                <button
-                  key={m.key}
-                  onClick={() => setMode(m.key)}
-                  className={`p-[16px] rounded-[6px] border text-left transition-all duration-200 cursor-pointer ${
-                    mode === m.key
-                      ? 'border-burg bg-burg-bg/50 shadow-[0_2px_8px_rgba(139,26,26,0.08)] scale-[1.02]'
-                      : 'border-border bg-white hover:border-burg/50 hover:bg-cream'
-                  }`}
-                >
-                  <p className={`font-bold text-[14px] mb-[4px] ${mode === m.key ? 'text-burg' : 'text-text'}`}>{m.label}</p>
-                  <p className="text-muted text-[11px] font-medium leading-[1.4]">{m.desc}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Complaint Input */}
-          <div className="pt-[16px] border-t border-border/60">
-            {mode === 'text' ? (
-              <div>
-                <label className="block text-[12px] font-bold text-text uppercase tracking-wider mb-[12px]">
-                  Complaint Details
-                </label>
-                <textarea
-                  rows={5}
-                  value={form.text}
-                  onChange={(e) => setForm({ ...form, text: e.target.value })}
-                  placeholder="E.g. 'There is a large pothole on MG Road near the bus stop. It has been there for 2 weeks and is causing accidents...' (You can write in Hindi, Marathi, etc.)"
-                  className="input resize-vertical min-h-[120px] text-[15px] leading-[1.6] bg-cream border-border focus:border-burg focus:ring-1 focus:ring-burg shadow-inner"
-                />
-                <p className="text-[11px] text-muted mt-[8px] font-medium flex items-center gap-1.5">
-                  <span className="text-burg">⚡</span> Write natively. Our AI handles the translation.
-                </p>
-              </div>
-            ) : (
-              <div>
-                <label className="block text-[12px] font-bold text-text uppercase tracking-wider mb-[12px]">Record Audio Narrative</label>
-                <div className="flex flex-col items-center gap-[16px] p-[32px] border-2 border-dashed border-border rounded-[8px] bg-cream/50 transition-colors hover:border-burg/30 hover:bg-burg-bg/30">
-                  {!audioUrl ? (
-                    <>
-                      <button
-                        onClick={recording ? stopRecording : startRecording}
-                        className={`w-[72px] h-[72px] rounded-full flex items-center justify-center text-[28px] transition-all duration-300 shadow-md border-[4px] cursor-pointer ${
-                          recording
-                            ? 'bg-red-50 text-red-600 border-red-500 animate-pulse scale-[1.05]'
-                            : 'bg-white text-burg border-burg/20 hover:border-burg'
-                        }`}
-                      >
-                        {recording ? '⏹' : '🎤'}
-                      </button>
-                      <div className="text-center">
-                         <p className="text-[14px] font-bold text-text mb-[4px]">
-                           {recording ? 'Recording in progress...' : 'Click to start recording'}
-                         </p>
-                         <p className="text-[11px] text-muted">Please speak clearly describing the issue and location.</p>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="w-full space-y-[16px] max-w-[400px]">
-                      <div className="bg-white p-3 rounded-[8px] border border-border shadow-sm">
-                         <audio src={audioUrl} controls className="w-full h-[40px]" />
-                      </div>
-                      <button
-                        onClick={() => { setAudioBlob(null); setAudioUrl(''); }}
-                        className="btn-ghost w-full py-[10px] text-[13px] text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 bg-white"
-                      >
-                        🗑️ Delete & Re-record
-                      </button>
-                    </div>
-                  )}
+        <div className="grid lg:grid-cols-3 gap-12">
+           <div className="lg:col-span-2 space-y-12">
+              {/* Submission Mode Selection */}
+              <section className="bg-white border border-border rounded-3xl p-8 shadow-sm">
+                <h3 className="text-xs font-black text-navy uppercase tracking-[0.2em] mb-8">Uplink Protocol</h3>
+                <div className="flex bg-off p-1.5 rounded-2xl border border-border">
+                  <button 
+                    onClick={() => setMode('text')}
+                    className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-sm font-bold transition-all duration-300 ${mode === 'text' ? 'bg-white text-navy shadow-md ring-1 ring-border' : 'text-dim hover:text-navy'}`}
+                  >
+                    <Type size={18} /> Text Narrative
+                  </button>
+                  <button 
+                    onClick={() => setMode('voice')}
+                    className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl text-sm font-bold transition-all duration-300 ${mode === 'voice' ? 'bg-white text-navy shadow-md ring-1 ring-border' : 'text-dim hover:text-navy'}`}
+                  >
+                    <Mic size={18} /> Voice Telemetry
+                  </button>
                 </div>
-              </div>
-            )}
-          </div>
 
-          {/* ── PHOTO CAPTURE ─────────────────────────────────────────────── */}
-          <div className="pt-[16px] border-t border-border/60">
-            <label className="block text-[12px] font-bold text-text uppercase tracking-wider mb-[12px] flex items-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                <circle cx="12" cy="13" r="4"/>
-              </svg>
-              Attach Photos
-              <span className="text-muted font-medium normal-case tracking-normal text-[11px]">(optional, up to 5 — geotagged automatically)</span>
-            </label>
+                <div className="mt-8">
+                   <AnimatePresence mode="wait">
+                     {mode === 'text' ? (
+                        <motion.div 
+                          key="text"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                        >
+                          <textarea
+                            rows={6}
+                            value={form.text}
+                            onChange={(e) => setForm({ ...form, text: e.target.value })}
+                            placeholder="Describe the incident with precise details and environmental context..."
+                            className="input-premium resize-none"
+                          />
+                        </motion.div>
+                     ) : (
+                        <motion.div 
+                          key="voice"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="flex flex-col items-center justify-center py-12 bg-off/50 rounded-2xl border-2 border-dashed border-border group hover:border-burg/20 transition-colors"
+                        >
+                           {!audioUrl ? (
+                             <>
+                               <button 
+                                 onClick={recording ? stopRecording : startRecording}
+                                 className={`w-24 h-24 rounded-full flex items-center justify-center mb-6 transition-all duration-500 shadow-xl border-4 ${recording ? 'bg-burg text-white border-burg/20 animate-pulse' : 'bg-white text-burg border-white hover:scale-105'}`}
+                               >
+                                 <Mic size={32} />
+                               </button>
+                               <p className="text-sm font-bold text-navy uppercase tracking-widest">{recording ? 'Synchronizing Stream...' : 'Hold to Record'}</p>
+                             </>
+                           ) : (
+                             <div className="w-full px-8 space-y-6">
+                                <audio src={audioUrl} controls className="w-full" />
+                                <button 
+                                  onClick={() => { setAudioBlob(null); setAudioUrl(''); }}
+                                  className="w-full py-4 rounded-xl border border-burg/20 text-burg text-xs font-black uppercase tracking-widest hover:bg-burg/5 transition-colors flex items-center justify-center gap-2"
+                                >
+                                  <Trash2 size={14} /> Clear Telemetry
+                                </button>
+                             </div>
+                           )}
+                        </motion.div>
+                     )}
+                   </AnimatePresence>
+                </div>
+              </section>
 
-            {/* Hidden camera input */}
-            <input
-              ref={cameraInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              multiple
-              onChange={handleImageCapture}
-              className="hidden"
-            />
+              {/* Photo Capture Section */}
+              <section className="bg-white border border-border rounded-3xl p-8 shadow-sm">
+                 <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-xs font-black text-navy uppercase tracking-[0.2em]">Visual Evidence</h3>
+                    <span className="text-[10px] font-bold text-dim uppercase tracking-widest">Limit: 05 Logs</span>
+                 </div>
 
-            {/* Image preview grid */}
-            {capturedImages.length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
-                {capturedImages.map((img, idx) => (
-                  <div key={idx} className="relative group rounded-[6px] overflow-hidden border border-border aspect-square bg-cream">
-                    <img src={img.previewUrl} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
-                    {/* Geotag indicator */}
-                    {img.lat && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[8px] font-mono px-1 py-0.5 flex items-center gap-0.5">
-                        <svg width="7" height="7" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                        {img.lat.toFixed(4)}, {img.lng.toFixed(4)}
-                        {img.accuracy && <span className="ml-0.5 text-green-300">±{img.accuracy}m</span>}
+                 <input
+                   ref={cameraInputRef}
+                   type="file"
+                   accept="image/*"
+                   capture="environment"
+                   multiple
+                   onChange={handleImageCapture}
+                   className="hidden"
+                 />
+
+                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-4 mb-8">
+                    {capturedImages.map((img, idx) => (
+                      <motion.div 
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        key={idx} 
+                        className="relative aspect-square rounded-2xl overflow-hidden border border-border group bg-off"
+                      >
+                         <img src={img.previewUrl} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                         <button 
+                           onClick={() => removeImage(idx)}
+                           className="absolute top-1.5 right-1.5 w-6 h-6 bg-burg text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                         >
+                           <X size={12} strokeWidth={3} />
+                         </button>
+                         {img.lat && (
+                           <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 bg-black/60 backdrop-blur-md rounded-md text-[8px] font-black text-white uppercase tracking-tighter">
+                             Geotagged
+                           </div>
+                         )}
+                      </motion.div>
+                    ))}
+                    {capturedImages.length < 5 && (
+                       <button 
+                         onClick={() => cameraInputRef.current?.click()}
+                         className="aspect-square rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 text-dim hover:text-burg hover:border-burg/20 hover:bg-burg/5 transition-all duration-300"
+                       >
+                         <Camera size={24} />
+                         <span className="text-[10px] font-black uppercase tracking-widest">Add Log</span>
+                       </button>
+                    )}
+                 </div>
+                 <div className="flex items-start gap-3 p-4 bg-off rounded-2xl border border-border">
+                    <Info size={16} className="text-navy/30 shrink-0" />
+                    <p className="text-[10px] text-muted font-bold uppercase tracking-wide leading-relaxed">
+                      Telemetry Note: Images are automatically sharded with RSA-2048 encryption and geotagged for precise administrative mapping.
+                    </p>
+                 </div>
+              </section>
+
+              {/* Location Input */}
+              <section className="bg-white border border-border rounded-3xl p-8 shadow-sm">
+                 <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-xs font-black text-navy uppercase tracking-[0.2em]">Regional Assignment</h3>
+                    {geocoding && (
+                      <div className="flex items-center gap-2 text-burg">
+                         <Loader2 size={14} className="animate-spin" />
+                         <span className="text-[10px] font-black uppercase tracking-widest">Detecting Cell...</span>
                       </div>
                     )}
-                    {/* Remove button */}
-                    <button
-                      onClick={() => removeImage(idx)}
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-burg text-white text-[10px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+                 </div>
 
-            {/* Add photo button */}
-            {capturedImages.length < 5 && (
-              <button
-                type="button"
-                onClick={() => cameraInputRef.current?.click()}
-                className="w-full border-2 border-dashed border-border rounded-[6px] py-[16px] flex items-center justify-center gap-2 text-[13px] font-semibold text-muted hover:border-burg hover:text-burg hover:bg-burg-bg/20 transition-all bg-cream/50 cursor-pointer"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
-                </svg>
-                {capturedImages.length === 0 ? 'Open Camera / Choose Photo' : `Add More Photos (${capturedImages.length}/5)`}
-              </button>
-            )}
-            {capturedImages.length > 0 && (
-              <p className="text-[11px] text-muted mt-2 flex items-center gap-1">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
-                </svg>
-                Photos are automatically tagged with your GPS coordinates for precise location mapping.
-              </p>
-            )}
-          </div>
+                 <div className="grid sm:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                       <label className="text-[10px] font-black text-dim uppercase tracking-widest">Federal State *</label>
+                       <select 
+                         value={form.state}
+                         onChange={(e) => setForm({ ...form, state: e.target.value })}
+                         className="w-full bg-off border border-border rounded-xl px-5 py-4 font-bold text-navy appearance-none"
+                       >
+                         <option value="">Select Region</option>
+                         {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                       </select>
+                    </div>
+                    <div className="space-y-4">
+                       <label className="text-[10px] font-black text-dim uppercase tracking-widest">District Command</label>
+                       <input 
+                         type="text"
+                         value={form.district}
+                         onChange={(e) => setForm({ ...form, district: e.target.value })}
+                         placeholder="District / County"
+                         className="input-premium py-4"
+                       />
+                    </div>
+                    <div className="space-y-4">
+                       <label className="text-[10px] font-black text-dim uppercase tracking-widest">City / Suburb</label>
+                       <input 
+                         type="text"
+                         value={form.city}
+                         onChange={(e) => setForm({ ...form, city: e.target.value })}
+                         placeholder="Area Segment"
+                         className="input-premium py-4"
+                       />
+                    </div>
+                    <div className="space-y-4">
+                       <label className="text-[10px] font-black text-dim uppercase tracking-widest">Nation Link</label>
+                       <input 
+                         type="text"
+                         value={form.country}
+                         disabled
+                         className="input-premium py-4 bg-off/50 text-dim"
+                       />
+                    </div>
+                 </div>
+              </section>
 
-          {/* Location */}
-          <div className="pt-[16px] border-t border-border/60">
-            <label className="block text-[12px] font-bold text-text uppercase tracking-wider mb-[12px] flex items-center gap-2">
-              📍 Incident Location
-              {geocoding && (
-                <span className="flex items-center gap-1.5 text-burg font-semibold normal-case tracking-normal text-[11px]">
-                  <div className="w-3 h-3 border-[2px] border-burg/30 border-t-burg rounded-full animate-spin" />
-                  Detecting location from photo...
-                </span>
-              )}
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-[16px]">
-              <div>
-                <label className="text-[11px] font-semibold text-muted mb-[6px] block">State *</label>
-                <select
-                  value={form.state}
-                  onChange={(e) => setForm({ ...form, state: e.target.value })}
-                  className="input text-[14px] bg-white border-border focus:border-burg cursor-pointer"
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-4 p-6 bg-burg/5 border border-burg/10 rounded-2xl text-burg"
                 >
-                  <option value="">Select state...</option>
-                  {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-muted mb-[6px] block">District</label>
-                <input
-                  type="text"
-                  value={form.district}
-                  onChange={(e) => setForm({ ...form, district: e.target.value })}
-                  placeholder="e.g. Mumbai Suburban"
-                  className="input text-[14px] bg-white border-border focus:border-burg"
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-muted mb-[6px] block">City / Area</label>
-                <input
-                  type="text"
-                  value={form.city}
-                  onChange={(e) => setForm({ ...form, city: e.target.value })}
-                  placeholder="e.g. Bandra West"
-                  className="input text-[14px] bg-white border-border focus:border-burg"
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-muted mb-[6px] block">Country</label>
-                <input
-                  type="text"
-                  value={form.country}
-                  onChange={(e) => setForm({ ...form, country: e.target.value })}
-                  placeholder="e.g. India"
-                  className="input text-[14px] bg-white border-border focus:border-burg"
-                />
-              </div>
-            </div>
-          </div>
+                   <AlertTriangle size={24} />
+                   <p className="font-bold text-xs uppercase tracking-widest">{error}</p>
+                </motion.div>
+              )}
 
-          {error && (
-            <div className="bg-burg-bg border border-burg/20 rounded-[6px] px-[16px] py-[12px]">
-              <p className="text-burg text-[13px] font-semibold flex items-center gap-2"><span>⚠️</span> {error}</p>
-            </div>
-          )}
+              <button 
+                onClick={handleSubmit} 
+                disabled={loading}
+                className="btn-primary w-full py-6 text-lg relative overflow-hidden group shadow-2xl shadow-burg/20"
+              >
+                <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                <span className="relative z-10 flex items-center justify-center gap-4">
+                   {loading ? (
+                     <>
+                       <Loader2 size={24} className="animate-spin" />
+                       Processing Uplink...
+                     </>
+                   ) : (
+                     <>
+                       Synchronize Grievance Log <ArrowRight size={24} />
+                     </>
+                   )}
+                </span>
+              </button>
+           </div>
 
-          <div className="pt-[8px]">
-             <button
-               onClick={handleSubmit}
-               disabled={loading}
-               className="btn-primary w-full py-[16px] text-[15px] shadow-[0_6px_20px_rgba(139,26,26,0.22)] transition-transform hover:-translate-y-[2px]"
-             >
-               {loading ? (
-                 <span className="flex items-center justify-center gap-3">
-                   <div className="w-[18px] h-[18px] border-[2.5px] border-white/30 border-t-white rounded-full animate-spin" />
-                   {mode === 'voice' ? 'Processing Audio & Categorizing...' : 'AI Analyzing Complaint...'}
-                 </span>
-               ) : (
-                 '🚀 Submit Grievance Securely'
-               )}
-             </button>
-             
-             <div className="mt-[16px] text-center">
-               <p className="text-[11px] text-muted font-medium inline-flex items-center gap-1.5 bg-cream px-[12px] py-[6px] rounded-full border border-border">
-                  <span className="text-burg">🤖</span> Intelligent AI-powered routing
-               </p>
-             </div>
-          </div>
+           {/* Sidebar Info */}
+           <div className="space-y-12">
+              <div>
+                <h4 className="text-[10px] font-black text-burg uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                   <Shield size={14} /> Security Protocol
+                </h4>
+                <div className="bg-white border border-border rounded-3xl p-8 space-y-8">
+                   <div className="flex gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-off flex items-center justify-center text-navy shrink-0"><Lock size={18} /></div>
+                      <div>
+                         <p className="text-xs font-black text-navy uppercase tracking-wider mb-2">E2EE Uplink</p>
+                         <p className="text-[10px] text-muted leading-relaxed font-bold uppercase tracking-wide">Citizen data is obfuscated at source using AES-256 before federal transmission.</p>
+                      </div>
+                   </div>
+                   <div className="flex gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-off flex items-center justify-center text-navy shrink-0"><Globe size={18} /></div>
+                      <div>
+                         <p className="text-xs font-black text-navy uppercase tracking-wider mb-2">Zero-Trust Registry</p>
+                         <p className="text-[10px] text-muted leading-relaxed font-bold uppercase tracking-wide">Administrators require multi-signature authorization to view PII-protected narratives.</p>
+                      </div>
+                   </div>
+                </div>
+              </div>
 
+              <div>
+                <h4 className="text-[10px] font-black text-navy uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                   <Zap size={14} /> Live Infrastructure
+                </h4>
+                <div className="space-y-4">
+                   <div className="bg-white border border-border rounded-2xl p-4 flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-dim uppercase tracking-widest">Neural Cluster</span>
+                      <span className="text-[10px] font-black text-green-600 uppercase">Synchronized</span>
+                   </div>
+                   <div className="bg-white border border-border rounded-2xl p-4 flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-dim uppercase tracking-widest">Routing API</span>
+                      <span className="text-[10px] font-black text-green-600 uppercase">2ms Latency</span>
+                   </div>
+                </div>
+              </div>
+           </div>
         </div>
-      </div>
+      </main>
     </div>
+  );
+}
+
+function Lock({ size, className }) {
+  return (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      width={size} 
+      height={size} 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+    >
+      <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
   );
 }

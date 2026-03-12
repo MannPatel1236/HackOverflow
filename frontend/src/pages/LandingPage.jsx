@@ -1,165 +1,207 @@
+import { motion } from 'framer-motion';
+import { 
+  Shield, 
+  Globe, 
+  Zap, 
+  MessageSquare, 
+  ChevronRight, 
+  ArrowRight,
+  Activity,
+  Award,
+  Lock
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import RotatingEarth from '../components/ui/wireframe-dotted-globe';
 
-import { Mic, Bot, MapPin, Bell, BarChart, Trophy } from 'lucide-react';
-
-const FEATURES = [
-  { icon: <Mic size={26} />, title: 'Voice in Any Language', desc: 'Speak in Hindi, Tamil, Marathi, or 15+ Indian languages. AI transcribes instantly.' },
-  { icon: <Bot size={26} />, title: 'AI Auto-Classification', desc: 'AI classifies your complaint, assigns severity, and routes to the right department in seconds.' },
-  { icon: <MapPin size={26} />, title: 'Live Geo Heatmaps', desc: 'Municipal officers see real-time complaint density maps by district and department.' },
-  { icon: <Bell size={26} />, title: 'WhatsApp Updates', desc: 'Get live status notifications directly on WhatsApp. No app download needed.' },
-  { icon: <BarChart size={26} />, title: 'SLA Breach Alerts', desc: 'Complaints unresolved after 72 hours are flagged automatically to supervisors.' },
-  { icon: <Trophy size={26} />, title: 'Municipality Rankings', desc: 'Super admin sees state-by-state leaderboard with performance scoring and analytics.' },
-];
-
-const STEPS = [
-  { step: '01', title: 'Submit', desc: 'File via WhatsApp or web in your language — text or voice.' },
-  { step: '02', title: 'Classify', desc: 'AI transcribes, classifies severity, and routes to the right department.' },
-  { step: '03', title: 'Track', desc: 'Get a tracking link. See live status updates on WhatsApp.' },
-  { step: '04', title: 'Resolve', desc: 'Municipal officers act. You\'re notified the moment it\'s fixed.' },
-];
+const fadeUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+};
 
 export default function LandingPage() {
-  const openWhatsApp = () => {
-    const number = import.meta.env.VITE_WHATSAPP_NUMBER || '14155238886';
-    const msg = encodeURIComponent('Hi CivicAI');
-    window.open(`https://wa.me/${number}?text=${msg}`, '_blank');
-  };
-
   return (
-    <div className="min-h-screen bg-cream flex flex-col">
+    <div className="min-h-screen bg-cream selection:bg-burg/10">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="bg-white grid grid-cols-1 md:grid-cols-2 border-b border-border">
-        <div className="px-6 md:px-12 py-12 md:py-20 flex flex-col justify-center">
-          <div className="text-[10px] font-bold tracking-[3px] uppercase text-burg mb-[14px] flex items-center gap-[10px] before:content-[''] before:w-5 before:h-[2px] before:bg-burg">
-            Welcome to the
-          </div>
-          <h1 className="font-serif text-4xl sm:text-5xl md:text-[clamp(28px,3.2vw,48px)] font-black leading-[1.1] text-text mb-[18px]">
-            <em className="italic text-burg not-italic:font-serif">Official CivicAI</em><br/>
-            Government<br/>
-            Grievance Platform
-          </h1>
-          <p className="text-[14px] text-muted leading-[1.8] max-w-[390px] mb-[28px]">
-            CivicAI empowers every Indian citizen to report urban issues in their native language — via voice, text, or WhatsApp. AI routes complaints instantly to the right municipal department.
-          </p>
-          <div className="flex gap-[12px]">
-            <Link to="/login" className="btn-primary">
-              Register / Sign Up
-            </Link>
-            <Link to="/file-complaint" className="btn-ghost border border-border bg-transparent text-text hover:border-burg hover:text-burg">
-              File Complaint 📝
-            </Link>
-          </div>
-        </div>
-        
-        {/* Right side graphical hero */}
-        <div className="bg-cream relative overflow-hidden hidden md:flex items-center justify-center h-full w-full py-12">
-          <RotatingEarth className="w-full max-w-[500px] flex items-center justify-center opacity-85" />
-        </div>
-      </section>
+      <main>
+        {/* Hero Section */}
+        <section className="relative pt-20 pb-32 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12 grid lg:grid-cols-2 gap-16 items-center">
+            <motion.div 
+              initial="initial" 
+              animate="animate" 
+              transition={{ staggerChildren: 0.15 }}
+              className="relative z-10"
+            >
+              <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-burg/5 border border-burg/10 mb-8">
+                <span className="w-2 h-2 rounded-full bg-burg animate-pulse" />
+                <span className="text-[10px] font-bold text-burg uppercase tracking-widest">Next-Gen Citizen Response</span>
+              </motion.div>
+              
+              <motion.h1 variants={fadeUp} className="text-6xl lg:text-7xl font-extrabold text-navy tracking-tight leading-[1.05] mb-8">
+                Modernizing the <span className="text-burg underline decoration-burg/20 underline-offset-8">Grievance</span> Lifecycle.
+              </motion.h1>
+              
+              <motion.p variants={fadeUp} className="text-xl text-muted leading-relaxed mb-12 max-w-xl">
+                A high-fidelity platform designed for transparency, speed, and accountability. Bridging the gap between citizens and administration through direct AI-assisted telemetry.
+              </motion.p>
+              
+              <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-4">
+                <Link to="/login" className="btn-primary py-4 px-10 text-base">
+                  Register Grievance <ArrowRight size={20} />
+                </Link>
+                <Link to="/login" className="btn-secondary py-4 px-10 text-base">
+                  Track Progress
+                </Link>
+              </motion.div>
 
+              <motion.div variants={fadeUp} className="mt-16 grid grid-cols-3 gap-8 border-t border-border pt-8 max-w-lg">
+                <div>
+                  <p className="text-3xl font-extrabold text-navy mb-1">99.9%</p>
+                  <p className="text-xs font-bold text-dim uppercase tracking-wider">Uptime Reliability</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-extrabold text-navy mb-1">2ms</p>
+                  <p className="text-xs font-bold text-dim uppercase tracking-wider">Neural Latency</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-extrabold text-navy mb-1">E2EE</p>
+                  <p className="text-xs font-bold text-dim uppercase tracking-wider">Standard Encryption</p>
+                </div>
+              </motion.div>
+            </motion.div>
 
-
-      {/* How it works */}
-      <section className="bg-cream py-16 px-6 md:px-12 border-b border-border relative overflow-hidden">
-        <div className="absolute right-[-30px] top-1/2 -translate-y-1/2 font-serif text-[180px] font-black text-black/5 pointer-events-none whitespace-nowrap tracking-[-6px] leading-none select-none">
-          AI
-        </div>
-        <div className="relative z-10">
-          <div className="text-[10px] font-bold tracking-[3px] uppercase text-burg mb-2 flex items-center gap-[10px] before:content-[''] before:w-6 before:h-[2px] before:bg-burg">
-            Process
-          </div>
-          <h2 className="font-serif text-[30px] font-bold leading-[1.2] text-text">From Complaint to Resolution</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-4 mt-14 relative">
-           <div className="hidden md:block absolute top-[33px] left-[10%] right-[10%] h-[1px] bg-gradient-to-r from-burg via-amber to-green z-0"></div>
-          {STEPS.map((s, i) => (
-            <div key={i} className="flex flex-col items-center text-center px-2 relative z-10 group">
-              <div className="w-[66px] h-[66px] rounded-full bg-white border border-border flex items-center justify-center font-bold text-[22px] text-burg mb-4 shadow-[0_2px_12px_rgba(0,0,0,0.06)] group-hover:border-burg group-hover:shadow-[0_6px_24px_rgba(139,26,26,0.18)] group-hover:scale-[1.07] transition-all duration-250">
-                {s.step}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+              className="relative hidden lg:block"
+            >
+              <div className="absolute inset-0 bg-burg/5 rounded-full blur-3xl scale-125 -z-10" />
+              <div className="aspect-square w-full max-w-[500px] mx-auto bg-white rounded-[40px] shadow-2xl border border-border overflow-hidden p-4">
+                <div className="w-full h-full bg-off rounded-[32px] flex items-center justify-center p-8 relative">
+                   <RotatingEarth className="w-full h-full opacity-80" />
+                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full border border-burg/10 animate-ping" />
+                </div>
               </div>
-              <h3 className="text-[13px] font-bold text-text mb-1">{s.title}</h3>
-              <p className="text-[11px] text-muted leading-[1.55] max-w-[200px]">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="bg-white py-16 px-6 md:px-12 border-b border-border">
-        <div className="mb-10 text-center flex flex-col items-center">
-           <div className="text-[10px] font-bold tracking-[3px] uppercase text-burg mb-2 flex items-center gap-[10px] before:content-[''] before:w-6 before:h-[2px] before:bg-burg after:content-[''] after:w-6 after:h-[2px] after:bg-burg">
-            Key Features
+            </motion.div>
           </div>
-          <h2 className="font-serif text-[30px] font-bold leading-[1.2] text-text max-w-lg">
-            Built for impact and transparency
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px]">
-          {FEATURES.map((f, i) => (
-            <div key={i} className="card p-[22px] flex flex-col gap-2">
-              <div className="text-[26px]">{f.icon}</div>
-              <h3 className="text-[14px] font-bold text-text">{f.title}</h3>
-              <p className="text-[12px] text-muted leading-[1.6]">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+        </section>
 
-      {/* CTA Layer */}
-      <section className="bg-cream py-16 border-b border-border">
-        <div className="max-w-3xl mx-auto text-center px-4">
-          <h2 className="font-serif text-3xl font-bold text-text mb-4">Ready to make your city better?</h2>
-          <p className="text-muted text-sm mb-8">
-            Join thousands of citizens making their voices heard across India.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button onClick={openWhatsApp} className="btn-primary flex items-center justify-center gap-2">
-              <span className="text-lg">📱</span> File on WhatsApp
-            </button>
-            <Link to="/login" className="btn-secondary">
-              Sign up on Web
-            </Link>
+        {/* Intelligence Grid */}
+        <section className="py-32 bg-off/50">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <div className="mb-20">
+              <h2 className="text-xs font-bold text-burg uppercase tracking-[0.3em] mb-4">Core Capabilities</h2>
+              <div className="flex flex-col lg:flex-row lg:items-end gap-8 justify-between">
+                <h3 className="text-4xl lg:text-5xl font-extrabold text-navy tracking-tight max-w-2xl">
+                  Built for scale. <br /> Engineered for speed.
+                </h3>
+                <p className="text-lg text-muted max-w-sm">
+                  Our neural infrastructure handles departmental routing and citizen outreach automatically.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <FeatureCard 
+                icon={<Zap size={24} />}
+                title="Instant Routing"
+                desc="Grievances are analyzed and dispatched to appropriate departments in real-time using direct Groq API integration."
+              />
+              <FeatureCard 
+                icon={<Shield size={24} />}
+                title="Secure Telemetry"
+                desc="End-to-end encrypted data transmission ensures citizen privacy remains the highest priority for the administration."
+              />
+              <FeatureCard 
+                icon={<Globe size={24} />}
+                title="Multilingual Support"
+                desc="Support for multiple regional languages ensures every citizen has a voice, powered by neural translation."
+              />
+              <FeatureCard 
+                icon={<Activity size={24} />}
+                title="Live Monitoring"
+                desc="Administrators can monitor regional grievance trends and departmental efficiency through live metrics dashboards."
+              />
+              <FeatureCard 
+                icon={<Award size={24} />}
+                title="SLA Accountability"
+                desc="Built-in Service Level Agreement monitoring ensures grievances are addressed within mandated timelines."
+              />
+              <FeatureCard 
+                icon={<Lock size={24} />}
+                title="Audit Trail"
+                desc="Immutability of status logs provides a complete audit trail of the entire grievance lifecycle for transparency."
+              />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Footer */}
-      <footer className="footer bg-navy pt-10 pb-5 px-6 md:px-12 flex-1 mt-auto">
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-8 border-b border-white/10">
-            <div>
-               <div className="font-serif text-[18px] text-white mb-[7px]">CivicAI</div>
-               <p className="text-[12px] text-white/30 leading-[1.7] max-w-[220px]">
-                 Multilingual Urban Grievance Intelligence Platform for modern India.
-               </p>
+        {/* Minimal Footer */}
+        <footer className="py-20 border-t border-border">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <div className="grid md:grid-cols-4 gap-12 mb-16">
+              <div className="md:col-span-1">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-lg bg-navy flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                  </div>
+                  <span className="font-sans text-lg font-extrabold text-navy tracking-tight uppercase">CIVICAI</span>
+                </div>
+                <p className="text-sm text-muted leading-relaxed">
+                  The infrastructure for a better governance experience.
+                </p>
+              </div>
+              <div>
+                 <h4 className="text-xs font-bold text-navy uppercase tracking-widest mb-6">Regional Commands</h4>
+                 <ul className="space-y-3 text-sm text-dim">
+                    <li className="hover:text-burg transition-colors cursor-pointer">Maharashtra</li>
+                    <li className="hover:text-burg transition-colors cursor-pointer">Gujarat</li>
+                    <li className="hover:text-burg transition-colors cursor-pointer">Karnataka</li>
+                 </ul>
+              </div>
+              <div>
+                 <h4 className="text-xs font-bold text-navy uppercase tracking-widest mb-6">Protocols</h4>
+                 <ul className="space-y-3 text-sm text-dim">
+                    <li className="hover:text-burg transition-colors cursor-pointer">Neural Routing</li>
+                    <li className="hover:text-burg transition-colors cursor-pointer">Telemetry Docs</li>
+                    <li className="hover:text-burg transition-colors cursor-pointer">Open Source</li>
+                 </ul>
+              </div>
+              <div>
+                 <h4 className="text-xs font-bold text-navy uppercase tracking-widest mb-6">Security</h4>
+                 <ul className="space-y-3 text-sm text-dim">
+                    <li className="hover:text-burg transition-colors cursor-pointer">Data Encryption</li>
+                    <li className="hover:text-burg transition-colors cursor-pointer">Citizen Privacy</li>
+                 </ul>
+              </div>
             </div>
-            <div>
-               <div className="text-[9px] font-bold tracking-[2px] uppercase text-white/25 mb-[12px]">Portals</div>
-               <div className="flex flex-col gap-2">
-                  <Link to="/login" className="text-[12px] text-white/40 hover:text-white transition-colors">Citizen Portal</Link>
-                  <Link to="/admin/login" className="text-[12px] text-white/40 hover:text-white transition-colors">Official Dashboard</Link>
-               </div>
+            <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-border gap-4">
+              <p className="text-xs text-dim">© 2026 CIVICAI. FEDERAL SYSTEMS ACTIVE.</p>
+              <div className="flex gap-8">
+                 <span className="text-xs text-dim hover:text-navy cursor-pointer">TERMS_OF_SERVICE</span>
+                 <span className="text-xs text-dim hover:text-navy cursor-pointer">PRIVACY_PROTOCOL</span>
+              </div>
             </div>
-            <div>
-               <div className="text-[9px] font-bold tracking-[2px] uppercase text-white/25 mb-[12px]">Legal</div>
-               <div className="flex flex-col gap-2">
-                  <span className="text-[12px] text-white/40 cursor-default">Privacy Policy</span>
-                  <span className="text-[12px] text-white/40 cursor-default">Terms of Service</span>
-               </div>
-            </div>
-         </div>
-         <div className="flex justify-between items-center pt-[18px]">
-            <div className="text-[10px] text-white/20">© 2026 CivicAI India</div>
-            <div className="flex rounded-[2px] overflow-hidden">
-               <div className="h-[10px] w-[20px] bg-[#FF9933]"></div>
-               <div className="h-[10px] w-[20px] bg-white"></div>
-               <div className="h-[10px] w-[20px] bg-[#138808]"></div>
-            </div>
-         </div>
-      </footer>
+          </div>
+        </footer>
+      </main>
+    </div>
+  );
+}
+
+function FeatureCard({ icon, title, desc }) {
+  return (
+    <div className="card-premium group">
+      <div className="w-12 h-12 rounded-2xl bg-off flex items-center justify-center text-navy mb-6 group-hover:bg-burg group-hover:text-white transition-all duration-500">
+        {icon}
+      </div>
+      <h4 className="text-xl font-extrabold text-navy mb-4 tracking-tight">{title}</h4>
+      <p className="text-sm text-muted leading-relaxed">
+        {desc}
+      </p>
     </div>
   );
 }

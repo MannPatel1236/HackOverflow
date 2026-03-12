@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,39 +7,48 @@
 @layer base {
   * {
     box-sizing: border-box;
+    @apply border-border;
   }
   body {
-    @apply bg-cream text-text font-sans antialiased overflow-x-hidden;
-    /* Removed the dark background gradient, keeping it simple as per target */
+    @apply bg-cream text-text font-sans antialiased overflow-x-hidden selection:bg-burg/10 selection:text-burg;
     min-height: 100vh;
   }
   
-  /* Adding headings styles */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif text-text;
+    @apply font-sans font-extrabold text-navy tracking-tight;
   }
 }
 
 @layer components {
+  /* Premium Button System */
   .btn-primary {
-    @apply bg-burg hover:bg-burg-2 text-white font-semibold px-6 py-3 rounded text-sm
-           transition-all duration-200 shadow-btn hover:-translate-y-[1px]
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-burg hover:bg-burg-hover text-white font-bold px-8 py-3.5 rounded-full text-sm
+           transition-all duration-300 shadow-md active:scale-95 flex items-center justify-center gap-2;
   }
+  
   .btn-secondary {
-    @apply bg-transparent hover:border-burg text-text hover:text-burg border border-border font-medium
-           px-5 py-[11px] rounded text-sm transition-all duration-200;
+    @apply bg-white hover:bg-off text-text border border-border font-semibold
+           px-8 py-3.5 rounded-full text-sm transition-all duration-300 active:scale-95 shadow-sm;
   }
+
   .btn-ghost {
-    @apply hover:bg-slate-100/50 text-muted hover:text-text font-medium px-4 py-2 rounded transition-all duration-200;
+    @apply hover:bg-off text-muted hover:text-navy font-semibold px-6 py-3 rounded-xl transition-all duration-300;
   }
-  .card {
-    @apply bg-white border border-border rounded-md hover:-translate-y-[3px] hover:shadow-card-hover transition-all duration-300;
+
+  /* Premium Card System */
+  .card-premium {
+    @apply bg-white border border-border rounded-2xl p-8 hover:shadow-card-hover hover:-translate-y-1 transition-all duration-500;
   }
-  .input {
-    @apply w-full bg-cream border-[1.5px] border-border rounded px-3 py-2 text-text text-sm font-sans
-           placeholder:text-muted focus:outline-none focus:border-burg focus:ring-1 
-           focus:ring-burg/20 transition-all duration-200;
+
+  /* High-Fidelity Form Elements */
+  .input-premium {
+    @apply w-full bg-off/50 border border-border rounded-xl px-4 py-4 text-text text-sm font-sans
+           placeholder:text-dim focus:outline-none focus:border-burg focus:bg-white 
+           transition-all duration-300;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-navy to-navy/70;
   }
   .badge {
     @apply inline-flex items-center gap-1 px-2 py-[2px] rounded-sm text-[9px] font-bold tracking-widest uppercase;
@@ -63,14 +74,14 @@
   border-radius: 6px;
 }
 .leaflet-tile-pane {
-  filter: brightness(0.7) saturate(0.5);
+  filter: brightness(1.02) saturate(0.8);
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #1e293b; }
-::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #475569; }
+::-webkit-scrollbar-track { background: #F2F0EC; }
+::-webkit-scrollbar-thumb { background: #D4D2CD; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #B0AEA8; }
 
 /* Animations */
 @keyframes fadeIn {

@@ -2,102 +2,40 @@ import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import Navbar from '../components/Navbar';
 import { getNationalStats, getLeaderboard, createAdmin, listAdmins, deleteAdmin } from '../utils/api';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Globe, 
+  FileText, 
+  CheckCircle2, 
+  Clock, 
+  AlertTriangle, 
+  Map, 
+  Award, 
+  BarChart3, 
+  HardHat, 
+  Trash2, 
+  Droplets, 
+  Zap, 
+  MapPin, 
+  Shield,
+  UserPlus,
+  Users,
+  ChevronRight
+} from 'lucide-react';
 
-// ── Inline SVG Icons ──────────────────────────────────────────────────────
-const SvgIcons = {
-  globe: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-    </svg>
-  ),
-  clipboard: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-    </svg>
-  ),
-  check: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-    </svg>
-  ),
-  clock: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-    </svg>
-  ),
-  alert: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-    </svg>
-  ),
-  map: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
-    </svg>
-  ),
-  award: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
-    </svg>
-  ),
-  chart: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-    </svg>
-  ),
-  roads: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 17l3-10h12l3 10"/><line x1="9" y1="17" x2="9" y2="7"/><line x1="15" y1="17" x2="15" y2="7"/>
-    </svg>
-  ),
-  sanitation: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
-    </svg>
-  ),
-  water: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2C6 9 4 13 4 16a8 8 0 0016 0c0-3-2-7-8-14z"/>
-    </svg>
-  ),
-  electricity: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-    </svg>
-  ),
-  pin: (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
-    </svg>
-  ),
-  trash: (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
-    </svg>
-  ),
-};
-
-const DEPT_ICONS = { Roads: SvgIcons.roads, Sanitation: SvgIcons.sanitation, Water: SvgIcons.water, Electricity: SvgIcons.electricity, Other: SvgIcons.clipboard };
+const DEPT_ICONS = { Roads: HardHat, Sanitation: Trash2, Water: Droplets, Electricity: Zap, Other: FileText };
 
 const SCORE_COLOR = (score) =>
-  score >= 70 ? 'text-green font-bold' : score >= 50 ? 'text-amber font-bold' : 'text-burg font-bold';
+  score >= 70 ? 'text-green-600 font-black' : score >= 50 ? 'text-orange-600 font-black' : 'text-burg font-black';
 
 const SCORE_BADGE = (rating) => ({
-  Excellent: 'text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block bg-green-bg text-green border-green/20',
-  Average: 'text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block bg-amber-bg text-amber border-amber/20',
-  Poor: 'text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block bg-burg-bg text-burg border-burg/20',
-}[rating] || 'text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block bg-off text-muted border-border');
-
-const RANK_MEDAL = (i) => {
-  const colors = ['text-amber', 'text-gray-400', 'text-amber-700'];
-  if (i < 3) return <span className={colors[i]}>{SvgIcons.award}</span>;
-  return <span className="text-[14px] text-muted font-bold font-mono">#{i + 1}</span>;
-};
+  Excellent: 'bg-green-50 text-green-600 border-green-100',
+  Average: 'bg-orange-50 text-orange-600 border-orange-100',
+  Poor: 'bg-burg/5 text-burg border-burg/10',
+}[rating] || 'bg-off text-dim border-border');
 
 const INDIA_CENTER = [22.5937, 82.9629];
 
-// Density-based coloring
 function getDensityColor(count) {
   if (count >= 31) return '#ef4444';
   if (count >= 16) return '#f97316';
@@ -118,15 +56,8 @@ export default function SuperAdminDashboard() {
 
   useEffect(() => {
     fetchAll();
-
-    // Auto-refresh every 60 seconds
-    intervalRef.current = setInterval(() => {
-      fetchAll();
-    }, 60000);
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
+    intervalRef.current = setInterval(() => fetchAll(), 60000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
   const fetchAll = async () => {
@@ -152,7 +83,7 @@ export default function SuperAdminDashboard() {
       return setCreateMsg('All fields required');
     }
     if (newAdmin.role === 'state_admin' && !newAdmin.state) {
-        return setCreateMsg('State is required for State Admin role');
+      return setCreateMsg('State is required for State Admin role');
     }
     setCreateLoading(true);
     setCreateMsg('');
@@ -179,69 +110,79 @@ export default function SuperAdminDashboard() {
   const stateStats = nationalStats?.state_stats || [];
   const deptBreakdown = nationalStats?.department_breakdown || [];
 
-  const TABS = ['overview', 'leaderboard', 'admins'];
+  const TABS = [
+    { key: 'overview', label: 'Overview', icon: Globe },
+    { key: 'leaderboard', label: 'Leaderboard', icon: Award },
+    { key: 'admins', label: 'Personnel', icon: Users },
+  ];
 
   return (
-    <div className="min-h-screen bg-cream flex flex-col">
+    <div className="min-h-screen bg-cream flex flex-col font-sans">
       <Navbar />
-      <div className="flex-1 w-full max-w-[1400px] mx-auto px-[22px] py-[28px]">
+      <main className="flex-1 w-full max-w-[1440px] mx-auto px-6 lg:px-12 py-12">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-[24px] gap-[16px]">
+        <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
-            <div className="text-[10px] font-bold tracking-[3px] uppercase text-navy mb-2 flex items-center gap-[10px] before:content-[''] before:w-6 before:h-[2px] before:bg-navy">
-               Federal Oversight Level
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-1.5 h-10 bg-navy rounded-full" />
+              <h1 className="text-4xl font-extrabold text-navy tracking-tight uppercase">Federal Command</h1>
             </div>
-            <h1 className="font-serif text-[28px] font-bold text-text mb-1 flex items-center gap-[8px]">
-              {SvgIcons.globe} National Control Center
-            </h1>
-            <p className="text-[13px] text-muted font-medium">Super admin — pan-national orchestration and telemetry</p>
+            <p className="text-lg text-muted max-w-xl">
+              Tier-1 national orchestration — pan-India telemetry, performance indices, and personnel management.
+            </p>
           </div>
-        </div>
+        </header>
 
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-[6px] mb-[24px] bg-white p-[6px] rounded-[6px] border border-border w-fit shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+        {/* Tab Navigation */}
+        <div className="flex bg-white p-1.5 rounded-2xl border border-border w-fit mb-12 shadow-sm">
           {TABS.map((t) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-[20px] py-[10px] rounded-[4px] text-[12px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                tab === t ? 'bg-navy text-white shadow-md' : 'bg-transparent text-muted hover:text-text hover:bg-off'
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+                tab === t.key ? 'bg-navy text-white shadow-md' : 'text-dim hover:text-navy hover:bg-off'
               }`}
             >
-              {t}
+              <t.icon size={14} /> {t.label}
             </button>
           ))}
         </div>
 
-        {/* ── OVERVIEW TAB ────────────────────────── */}
+        {/* ── OVERVIEW TAB ──────────────────────── */}
         {tab === 'overview' && (
-          <div className="space-y-[24px] animate-fade-in">
+          <div className="space-y-12 animate-fade-in">
             {/* National Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {loading && !stats ? (
-                [...Array(4)].map((_, i) => <div key={i} className="card h-[100px] bg-off border border-border rounded-[6px] animate-pulse" />)
+                [...Array(4)].map((_, i) => <div key={i} className="h-32 bg-white border border-border rounded-2xl animate-pulse" />)
               ) : [
-                { label: 'Total Nationwide', value: stats?.total_complaints?.toLocaleString(), icon: SvgIcons.clipboard, bg: 'bg-white', text: 'text-text' },
-                { label: 'Avg. Resolution', value: `${stats?.resolve_pct}%`, icon: SvgIcons.check, bg: 'bg-green-bg', text: 'text-green' },
-                { label: 'Mean TAT', value: `${stats?.avg_resolve_days}d`, icon: SvgIcons.clock, bg: 'bg-[#EFF6FF]', text: 'text-[#1D4ED8]' },
-                { label: 'Active Breaches', value: stats?.sla_breaches, icon: <span className="text-burg">{SvgIcons.alert}</span>, bg: 'bg-burg-bg', text: 'text-burg', border: 'border-burg/20' },
-              ].map((s) => (
-                <div key={s.label} className={`flex flex-col gap-1 p-4 border rounded-[6px] shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all ${s.bg} ${s.border || 'border-border'}`}>
-                  <div className="flex justify-between items-center mb-1">
-                     <div className={`text-[11px] font-bold uppercase tracking-wider ${s.text === 'text-text' ? 'text-muted' : s.text}`}>{s.label}</div>
-                     <div className="opacity-40">{s.icon}</div>
+                { label: 'Total Nationwide', value: stats?.total_complaints?.toLocaleString(), icon: FileText, color: 'text-navy', bg: 'bg-navy/5' },
+                { label: 'Avg. Resolution', value: `${stats?.resolve_pct}%`, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50' },
+                { label: 'Mean TAT', value: `${stats?.avg_resolve_days}d`, icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50' },
+                { label: 'Active Breaches', value: stats?.sla_breaches, icon: AlertTriangle, color: 'text-burg', bg: 'bg-burg/5' },
+              ].map((s, i) => (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  key={s.label}
+                  className="bg-white border border-border rounded-2xl p-8 hover:shadow-md transition-all duration-300 group"
+                >
+                  <div className={`w-12 h-12 rounded-2xl ${s.bg} flex items-center justify-center ${s.color} mb-6 group-hover:scale-110 transition-transform`}>
+                    <s.icon size={24} />
                   </div>
-                  <div className={`font-serif text-[28px] font-black leading-none ${s.text}`}>{s.value ?? '—'}</div>
-                </div>
+                  <p className="text-[10px] font-black text-dim uppercase tracking-widest mb-1">{s.label}</p>
+                  <p className="text-4xl font-extrabold text-navy tracking-tight">{s.value ?? '—'}</p>
+                </motion.div>
               ))}
-            </div>
+            </section>
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-[24px]">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
               {/* National Map */}
-              <div className="lg:col-span-3 card flex flex-col relative overflow-hidden bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)]" style={{ height: '460px' }}>
-                <div className="px-[20px] py-[16px] border-b border-border flex items-center justify-between bg-white z-20">
-                  <h2 className="text-[14px] font-bold text-text uppercase tracking-wider flex items-center gap-[8px]">
-                    {SvgIcons.map} Federal Telemetry Map
+              <div className="lg:col-span-3 bg-white border border-border rounded-3xl overflow-hidden shadow-sm flex flex-col" style={{ height: '480px' }}>
+                <div className="px-8 py-6 border-b border-border flex items-center justify-between">
+                  <h2 className="text-xs font-black text-navy uppercase tracking-[0.2em] flex items-center gap-3">
+                    <Map size={16} className="text-burg" /> Federal Telemetry Map
                   </h2>
                 </div>
                 <div className="flex-1 w-full bg-cream relative z-10">
@@ -269,29 +210,18 @@ export default function SuperAdminDashboard() {
                           }}
                         >
                           <Popup className="civic-popup">
-                            <div className="p-[4px]">
-                              <p className="font-bold text-[15px] text-text mb-[6px] border-b border-border pb-[4px]">{s.state}</p>
-                              <div className="space-y-[4px]">
-                                <div className="flex justify-between items-center text-[12px]">
-                                  <span className="text-muted font-medium">Caseload:</span>
-                                  <span className="font-bold text-text">{s.total}</span>
-                                </div>
-                                <div className="flex justify-between items-center text-[12px]">
-                                  <span className="text-muted font-medium">Resolution:</span>
-                                  <span className="font-bold text-green bg-green-bg px-1 rounded">{s.resolve_pct}%</span>
-                                </div>
-                                <div className="flex justify-between items-center text-[12px] pb-[4px]">
-                                  <span className="text-muted font-medium">Mean TAT:</span>
-                                  <span className="font-bold text-[#1D4ED8] bg-[#EFF6FF] px-1 rounded">{s.avg_resolve_days ?? '—'}d</span>
-                                </div>
-                                {s.sla_breaches > 0 && (
-                                   <div className="pt-[4px] border-t border-border">
-                                      <span className="text-[11px] font-bold uppercase tracking-wider text-burg flex items-center gap-1">
-                                         {s.sla_breaches} Escalations
-                                      </span>
-                                   </div>
-                                )}
+                            <div className="p-2">
+                              <p className="font-extrabold text-sm text-navy mb-2 border-b border-border pb-2 uppercase tracking-wider">{s.state}</p>
+                              <div className="space-y-1.5 text-xs">
+                                <div className="flex justify-between"><span className="text-muted font-bold">Caseload:</span><span className="font-extrabold text-navy">{s.total}</span></div>
+                                <div className="flex justify-between"><span className="text-muted font-bold">Resolution:</span><span className="font-extrabold text-green-600">{s.resolve_pct}%</span></div>
+                                <div className="flex justify-between"><span className="text-muted font-bold">Mean TAT:</span><span className="font-extrabold text-blue-600">{s.avg_resolve_days ?? '—'}d</span></div>
                               </div>
+                              {s.sla_breaches > 0 && (
+                                <div className="mt-2 pt-2 border-t border-border">
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-burg">{s.sla_breaches} Escalations</span>
+                                </div>
+                              )}
                             </div>
                           </Popup>
                         </CircleMarker>
@@ -299,19 +229,18 @@ export default function SuperAdminDashboard() {
                     })}
                   </MapContainer>
 
-                  {/* Density Legend */}
-                  <div className="absolute bottom-[16px] left-[16px] bg-white/95 backdrop-blur-sm rounded-[6px] border border-border shadow-md p-[10px] z-[1000]">
-                    <div className="text-[9px] font-bold text-muted uppercase tracking-wider mb-[6px]">Density</div>
-                    <div className="space-y-[3px]">
+                  <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-md rounded-2xl border border-border shadow-lg p-4 z-[1000]">
+                    <div className="text-[9px] font-black text-dim uppercase tracking-[0.2em] mb-3">Density</div>
+                    <div className="space-y-2">
                       {[
                         { color: '#22c55e', label: '1–5' },
                         { color: '#eab308', label: '6–15' },
                         { color: '#f97316', label: '16–30' },
                         { color: '#ef4444', label: '31+' },
                       ].map((l) => (
-                        <div key={l.label} className="flex items-center gap-[6px]">
-                          <div className="w-[10px] h-[10px] rounded-full" style={{ backgroundColor: l.color }} />
-                          <span className="text-[10px] font-medium text-muted">{l.label}</span>
+                        <div key={l.label} className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: l.color }} />
+                          <span className="text-[10px] font-bold text-dim">{l.label}</span>
                         </div>
                       ))}
                     </div>
@@ -320,24 +249,29 @@ export default function SuperAdminDashboard() {
               </div>
 
               {/* Right Panel: Dept breakdown + State table */}
-              <div className="lg:col-span-2 space-y-[24px]">
-                {/* Dept Breakdown */}
-                <div className="card p-[20px] bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
-                  <h3 className="text-[13px] font-bold text-text uppercase tracking-wider mb-[16px] flex items-center gap-[8px]">
-                     <span className="w-[12px] h-[2px] bg-burg"></span> By Department
+              <div className="lg:col-span-2 space-y-8">
+                {/* Department Breakdown */}
+                <div className="bg-white border border-border rounded-3xl p-8 shadow-sm">
+                  <h3 className="text-xs font-black text-navy uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+                    <BarChart3 size={14} className="text-burg" /> By Department
                   </h3>
-                  <div className="space-y-[14px]">
+                  <div className="space-y-6">
                     {deptBreakdown.map((d) => {
-                      const icon = DEPT_ICONS[d._id] || SvgIcons.clipboard;
+                      const Icon = DEPT_ICONS[d._id] || FileText;
                       const pct = stats?.total_complaints > 0 ? Math.round((d.count / stats.total_complaints) * 100) : 0;
                       return (
                         <div key={d._id}>
-                          <div className="flex items-center justify-between text-[13px] mb-[6px]">
-                            <span className="font-semibold text-text flex items-center gap-2">{icon} {d._id}</span>
-                            <span className="text-muted font-mono font-bold text-[12px]">{d.count} <span className="opacity-60">({pct}%)</span></span>
+                          <div className="flex items-center justify-between text-sm mb-2">
+                            <span className="font-extrabold text-navy flex items-center gap-3"><Icon size={16} className="text-dim" /> {d._id}</span>
+                            <span className="font-mono font-black text-navy text-xs">{d.count} <span className="text-dim">({pct}%)</span></span>
                           </div>
-                          <div className="h-[6px] bg-off rounded-full overflow-hidden border border-border/50">
-                            <div className="h-full bg-navy rounded-full transition-all duration-1000" style={{ width: `${pct}%` }} />
+                          <div className="h-2 bg-off rounded-full overflow-hidden">
+                            <motion.div 
+                              initial={{ width: 0 }}
+                              animate={{ width: `${pct}%` }}
+                              transition={{ duration: 1, ease: 'circOut' }}
+                              className="h-full bg-navy rounded-full"
+                            />
                           </div>
                         </div>
                       );
@@ -346,33 +280,33 @@ export default function SuperAdminDashboard() {
                 </div>
 
                 {/* State Table */}
-                <div className="card overflow-hidden bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
-                  <div className="px-[20px] py-[16px] border-b border-border bg-off">
-                    <h3 className="text-[13px] font-bold text-text uppercase tracking-wider flex items-center gap-[8px]">
-                       <span className="w-[12px] h-[2px] bg-navy"></span> State Operations Summary
+                <div className="bg-white border border-border rounded-3xl overflow-hidden shadow-sm">
+                  <div className="px-8 py-6 border-b border-border bg-off/30">
+                    <h3 className="text-xs font-black text-navy uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Globe size={14} className="text-burg" /> State Operations Summary
                     </h3>
                   </div>
                   <div className="overflow-y-auto max-h-[220px]">
-                    <table className="w-full text-[12px]">
+                    <table className="w-full text-xs">
                       <thead className="sticky top-0 bg-white shadow-sm">
                         <tr className="border-b border-border">
-                          <th className="px-[16px] py-[10px] text-left text-muted font-bold uppercase tracking-wider">Jurisdiction</th>
-                          <th className="px-[16px] py-[10px] text-right text-muted font-bold uppercase tracking-wider">Tickets</th>
-                          <th className="px-[16px] py-[10px] text-right text-muted font-bold uppercase tracking-wider">Res %</th>
-                          <th className="px-[16px] py-[10px] text-right text-muted font-bold uppercase tracking-wider">Index</th>
+                          <th className="px-6 py-4 text-left text-[10px] font-black text-dim uppercase tracking-widest">Jurisdiction</th>
+                          <th className="px-6 py-4 text-right text-[10px] font-black text-dim uppercase tracking-widest">Cases</th>
+                          <th className="px-6 py-4 text-right text-[10px] font-black text-dim uppercase tracking-widest">Res %</th>
+                          <th className="px-6 py-4 text-right text-[10px] font-black text-dim uppercase tracking-widest">Index</th>
                         </tr>
                       </thead>
                       <tbody>
                         {stateStats.map((s) => (
                           <tr key={s._id} className="border-b border-border/60 hover:bg-off transition-colors">
-                            <td className="px-[16px] py-[12px] font-semibold text-text">{s.state}</td>
-                            <td className="px-[16px] py-[12px] text-right font-mono text-muted">{s.total}</td>
-                            <td className="px-[16px] py-[12px] text-right font-mono text-muted">{s.resolve_pct}%</td>
-                            <td className={`px-[16px] py-[12px] text-right font-mono text-[14px] ${SCORE_COLOR(s.score)}`}>{s.score}</td>
+                            <td className="px-6 py-4 font-extrabold text-navy text-xs">{s.state}</td>
+                            <td className="px-6 py-4 text-right font-mono text-dim font-bold">{s.total}</td>
+                            <td className="px-6 py-4 text-right font-mono text-dim font-bold">{s.resolve_pct}%</td>
+                            <td className={`px-6 py-4 text-right font-mono text-base ${SCORE_COLOR(s.score)}`}>{s.score}</td>
                           </tr>
                         ))}
                         {stateStats.length === 0 && !loading && (
-                          <tr><td colSpan={4} className="py-[20px] text-center text-muted">No state data available.</td></tr>
+                          <tr><td colSpan={4} className="py-12 text-center text-dim text-xs font-bold uppercase tracking-widest">No data available.</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -385,24 +319,26 @@ export default function SuperAdminDashboard() {
 
         {/* ── LEADERBOARD TAB ─────────────────────── */}
         {tab === 'leaderboard' && (
-          <div className="space-y-[16px] animate-fade-in">
-            <div className="bg-white border border-border rounded-[6px] p-[16px] flex items-start gap-[12px]">
-               {SvgIcons.chart}
-               <div>
-                  <h3 className="text-[13px] font-bold text-text uppercase tracking-wider mb-[2px]">Performance Matrix</h3>
-                  <p className="text-[12px] text-muted font-medium leading-[1.6]">
-                    Jurisdictions algorithmically ranked by composite operational index: <span className="text-text font-bold">50%</span> Resolution Rate + <span className="text-text font-bold">30%</span> Speed (TAT) + <span className="text-text font-bold">20%</span> SLA Adherence.
-                  </p>
-               </div>
+          <div className="space-y-8 animate-fade-in">
+            <div className="bg-white border border-border rounded-3xl p-8 flex items-start gap-6">
+              <div className="w-12 h-12 rounded-2xl bg-navy/5 flex items-center justify-center text-navy shrink-0">
+                <BarChart3 size={24} />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-navy uppercase tracking-wider mb-2">Performance Matrix</h3>
+                <p className="text-xs text-muted font-bold uppercase tracking-wide leading-relaxed">
+                  Jurisdictions algorithmically ranked by composite index: <span className="text-navy">50%</span> Resolution Rate + <span className="text-navy">30%</span> Speed (TAT) + <span className="text-navy">20%</span> SLA Adherence.
+                </p>
+              </div>
             </div>
-            
-            <div className="card overflow-hidden bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
+
+            <div className="bg-white border border-border rounded-3xl overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[800px]">
                   <thead>
-                    <tr className="border-b border-border bg-off">
-                      {['Rank', 'Jurisdiction', 'Total Tickets', 'Resolved', 'Mean TAT', 'Breaches', 'Index Score', 'Rating'].map((h) => (
-                        <th key={h} className="px-[20px] py-[14px] text-[11px] font-bold text-muted uppercase tracking-wider">
+                    <tr className="border-b border-border bg-off/50">
+                      {['Rank', 'Jurisdiction', 'Total', 'Resolved', 'Mean TAT', 'Breaches', 'Index', 'Rating'].map((h) => (
+                        <th key={h} className="px-6 py-5 text-[10px] font-black text-dim uppercase tracking-widest">
                           {h}
                         </th>
                       ))}
@@ -411,27 +347,39 @@ export default function SuperAdminDashboard() {
                   <tbody>
                     {leaderboard.map((row, i) => (
                       <tr key={row.state} className="border-b border-border/60 hover:bg-cream transition-colors group">
-                        <td className="px-[20px] py-[16px] text-[20px] w-[60px]">{RANK_MEDAL(i)}</td>
-                        <td className="px-[20px] py-[16px] font-serif text-[16px] font-bold text-text">{row.state}</td>
-                        <td className="px-[20px] py-[16px] font-mono text-[13px] text-muted">{row.total.toLocaleString()}</td>
-                        <td className="px-[20px] py-[16px] font-mono text-[13px] font-semibold text-text">{row.resolve_pct}%</td>
-                        <td className="px-[20px] py-[16px] font-mono text-[13px] text-muted">{row.avg_resolve_days != null ? `${row.avg_resolve_days}d` : '—'}</td>
-                        <td className="px-[20px] py-[16px] font-mono text-[13px]">
-                          <span className={row.sla_breaches > 0 ? 'text-burg font-bold bg-burg-bg px-2 py-0.5 rounded' : 'text-muted'}>
-                            {row.sla_breaches}
-                          </span>
+                        <td className="px-6 py-5 w-16">
+                          {i < 3 ? (
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${i === 0 ? 'bg-amber-50 text-amber-600' : i === 1 ? 'bg-gray-50 text-gray-400' : 'bg-orange-50 text-orange-700'}`}>
+                              <Award size={20} />
+                            </div>
+                          ) : (
+                            <span className="text-sm font-mono font-black text-dim">#{i + 1}</span>
+                          )}
                         </td>
-                        <td className={`px-[20px] py-[16px] font-mono text-[16px] ${SCORE_COLOR(row.score)}`}>
+                        <td className="px-6 py-5 font-extrabold text-navy text-base tracking-tight">{row.state}</td>
+                        <td className="px-6 py-5 font-mono text-xs text-dim font-bold">{row.total.toLocaleString()}</td>
+                        <td className="px-6 py-5 font-mono text-xs font-extrabold text-navy">{row.resolve_pct}%</td>
+                        <td className="px-6 py-5 font-mono text-xs text-dim font-bold">{row.avg_resolve_days != null ? `${row.avg_resolve_days}d` : '—'}</td>
+                        <td className="px-6 py-5 font-mono text-xs">
+                          {row.sla_breaches > 0 ? (
+                            <span className="px-2.5 py-1 rounded-md bg-burg/5 text-burg font-black border border-burg/10">{row.sla_breaches}</span>
+                          ) : (
+                            <span className="text-dim font-bold">0</span>
+                          )}
+                        </td>
+                        <td className={`px-6 py-5 font-mono text-xl ${SCORE_COLOR(row.score)}`}>
                           {row.score}
                         </td>
-                        <td className="px-[20px] py-[16px]">
-                          <span className={SCORE_BADGE(row.rating)}>{row.rating}</span>
+                        <td className="px-6 py-5">
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border ${SCORE_BADGE(row.rating)}`}>
+                            {row.rating}
+                          </span>
                         </td>
                       </tr>
                     ))}
                     {leaderboard.length === 0 && !loading && (
                       <tr>
-                        <td colSpan={8} className="px-[20px] py-[40px] text-center text-muted font-medium">
+                        <td colSpan={8} className="px-6 py-16 text-center text-dim text-xs font-bold uppercase tracking-widest">
                           No performance data accumulated yet.
                         </td>
                       </tr>
@@ -445,37 +393,37 @@ export default function SuperAdminDashboard() {
 
         {/* ── ADMINS TAB ──────────────────────────── */}
         {tab === 'admins' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px] animate-fade-in">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-fade-in">
             {/* Create Admin */}
-            <div className="card p-[28px] bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)] h-fit">
-              <h2 className="text-[14px] font-bold text-text uppercase tracking-wider mb-[24px] flex items-center gap-[8px]">
-                 <span className="w-[12px] h-[2px] bg-navy"></span> Provision Access Profile
+            <div className="bg-white border border-border rounded-3xl p-10 shadow-sm h-fit">
+              <h2 className="text-xs font-black text-navy uppercase tracking-[0.2em] mb-10 flex items-center gap-3">
+                <UserPlus size={16} className="text-burg" /> Provision Access Profile
               </h2>
-              <div className="space-y-[16px]">
+              <div className="space-y-6">
                 {[
                   { label: 'Officer Full Name', field: 'name', type: 'text', placeholder: 'e.g., A. Sharma' },
                   { label: 'Official Email ID', field: 'email', type: 'email', placeholder: 'officer@gov.in' },
                   { label: 'Secure Passphrase', field: 'password', type: 'password', placeholder: '••••••••' },
                 ].map((f) => (
                   <div key={f.field}>
-                    <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-[6px]">{f.label}</label>
+                    <label className="block text-[10px] font-black text-dim uppercase tracking-widest mb-3">{f.label}</label>
                     <input
                       type={f.type}
                       value={newAdmin[f.field]}
                       onChange={(e) => setNewAdmin({ ...newAdmin, [f.field]: e.target.value })}
                       placeholder={f.placeholder}
-                      className="input"
+                      className="input-premium py-4"
                     />
                   </div>
                 ))}
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-[6px]">Clearance Level</label>
+                    <label className="block text-[10px] font-black text-dim uppercase tracking-widest mb-3">Clearance Level</label>
                     <select
                       value={newAdmin.role}
                       onChange={(e) => setNewAdmin({ ...newAdmin, role: e.target.value })}
-                      className="input font-semibold cursor-pointer"
+                      className="w-full bg-off/50 border border-border rounded-xl px-4 py-4 font-bold text-navy appearance-none text-sm"
                     >
                       <option value="state_admin">State Officer (Tier 2)</option>
                       <option value="super_admin">Federal Officer (Tier 1)</option>
@@ -483,71 +431,78 @@ export default function SuperAdminDashboard() {
                   </div>
                   {newAdmin.role === 'state_admin' && (
                     <div className="animate-fade-in">
-                      <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-[6px]">Assigned State</label>
+                      <label className="block text-[10px] font-black text-dim uppercase tracking-widest mb-3">Assigned State</label>
                       <input
                         type="text"
                         value={newAdmin.state}
                         onChange={(e) => setNewAdmin({ ...newAdmin, state: e.target.value })}
                         placeholder="e.g., Maharashtra"
-                        className="input"
+                        className="input-premium py-4"
                       />
                     </div>
                   )}
                 </div>
 
                 {createMsg && (
-                  <div className={`mt-[16px] p-[12px] rounded-[4px] border text-[13px] font-bold flex items-center gap-[8px] ${createMsg.includes('provisioned') ? 'bg-green-bg text-green border-green/20' : 'bg-burg-bg text-burg border-burg/20'}`}>
+                  <div className={`p-4 rounded-2xl border text-xs font-black uppercase tracking-widest flex items-center gap-3 ${createMsg.includes('provisioned') ? 'bg-green-50 text-green-600 border-green-100' : 'bg-burg/5 text-burg border-burg/10'}`}>
+                    {createMsg.includes('provisioned') ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
                     {createMsg}
                   </div>
                 )}
 
-                <button onClick={handleCreateAdmin} disabled={createLoading} className="btn-primary w-full py-[14px] mt-[8px]">
-                  {createLoading ? 'Provisioning...' : 'Provision Officer Access →'}
+                <button onClick={handleCreateAdmin} disabled={createLoading} className="btn-primary w-full py-5 mt-4">
+                  {createLoading ? 'Provisioning...' : 'Provision Officer Access'}
                 </button>
               </div>
             </div>
 
             {/* Admin List */}
-            <div className="card overflow-hidden bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex flex-col h-[600px]">
-              <div className="px-[20px] py-[16px] border-b border-border bg-off flex justify-between items-center shrink-0">
-                <h2 className="text-[13px] font-bold text-text uppercase tracking-wider flex items-center gap-[8px]">
-                   <span className="w-[12px] h-[2px] bg-navy"></span> Active Personnel Registry
+            <div className="bg-white border border-border rounded-3xl overflow-hidden shadow-sm flex flex-col" style={{ maxHeight: '700px' }}>
+              <div className="px-8 py-6 border-b border-border bg-off/50 flex justify-between items-center shrink-0">
+                <h2 className="text-xs font-black text-navy uppercase tracking-[0.2em] flex items-center gap-3">
+                  <Shield size={14} className="text-burg" /> Active Personnel
                 </h2>
-                <span className="text-[11px] font-bold bg-white px-2 py-0.5 rounded border border-border text-muted">{admins.length} Total</span>
+                <span className="text-[10px] font-black bg-white px-3 py-1.5 rounded-xl border border-border text-navy">{admins.length} Total</span>
               </div>
-              
+
               <div className="divide-y divide-border/60 overflow-y-auto flex-1 bg-cream/30">
                 {admins.map((a) => (
-                  <div key={a._id} className="px-[20px] py-[16px] flex items-center justify-between hover:bg-white transition-colors group">
-                    <div>
-                      <p className="text-[14px] font-bold text-text mb-[2px]">{a.name}</p>
-                      <p className="text-[12px] font-mono text-muted mb-[8px]">{a.email}</p>
-                      <div className="flex flex-wrap items-center gap-[8px]">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block ${a.role === 'super_admin' ? 'bg-[#F3E8FF] text-[#9333EA] border-[#D8B4FE]' : 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]'}`}>
-                          {a.role === 'super_admin' ? 'Tier 1' : 'Tier 2'}
-                        </span>
-                        {a.state && <span className="text-[11px] font-semibold text-muted flex items-center gap-1">{SvgIcons.pin} {a.state}</span>}
+                  <div key={a._id} className="px-8 py-6 flex items-center justify-between hover:bg-white transition-colors group">
+                    <div className="flex items-center gap-5">
+                      <div className="w-12 h-12 rounded-2xl bg-navy text-white flex items-center justify-center text-sm font-black">
+                        {a.name?.[0] || 'A'}
+                      </div>
+                      <div>
+                        <p className="text-sm font-extrabold text-navy tracking-tight mb-1">{a.name}</p>
+                        <p className="text-[10px] font-mono text-dim font-bold tracking-wider mb-2">{a.email}</p>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border ${a.role === 'super_admin' ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                            {a.role === 'super_admin' ? 'Tier 1' : 'Tier 2'}
+                          </span>
+                          {a.state && <span className="text-[10px] font-bold text-dim flex items-center gap-1"><MapPin size={10} /> {a.state}</span>}
+                        </div>
                       </div>
                     </div>
                     <button
                       onClick={() => handleDeleteAdmin(a._id)}
-                      className="text-muted hover:text-burg opacity-0 group-hover:opacity-100 transition-all p-[8px] hover:bg-burg-bg rounded-[4px] cursor-pointer"
+                      className="text-dim hover:text-burg opacity-0 group-hover:opacity-100 transition-all p-3 hover:bg-burg/5 rounded-xl"
                       title="Revoke Access"
                     >
-                      {SvgIcons.trash}
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 ))}
                 {admins.length === 0 && !loading && (
-                  <div className="p-[40px] text-center text-muted font-medium text-[13px]">No administrative profiles found.</div>
+                  <div className="p-16 text-center">
+                    <Users size={32} className="text-dim mx-auto mb-4" />
+                    <p className="text-xs font-bold text-dim uppercase tracking-widest">No administrative profiles found.</p>
+                  </div>
                 )}
               </div>
             </div>
-            
           </div>
         )}
-
-      </div>
+      </main>
     </div>
   );
 }

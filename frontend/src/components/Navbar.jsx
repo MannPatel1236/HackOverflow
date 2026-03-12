@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogOut, Shield, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar() {
   const { user, admin, logout } = useAuth();
@@ -11,115 +12,111 @@ export default function Navbar() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-white h-[52px] flex items-center">
-      <div className="w-full px-5 sm:px-12 flex items-center justify-between">
+    <nav className="sticky top-0 z-[100] border-b border-border bg-white/80 backdrop-blur-xl h-[72px] flex items-center">
+      <div className="w-full max-w-7xl mx-auto px-6 sm:px-12 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-[9px] group mb-[3px]">
-          <div className="w-[26px] h-[26px] rounded-full border-2 border-burg relative flex items-center justify-center shrink-0 animate-[spin_14s_linear_infinite]">
-            <div className="w-[7px] h-[7px] rounded-full bg-burg"></div>
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="w-9 h-9 rounded-xl bg-navy flex items-center justify-center transition-transform group-hover:scale-110 duration-500">
+             <div className="w-2 h-2 rounded-full bg-white" />
           </div>
-          <span className="font-serif text-[17px] font-bold text-text tracking-[0.3px]">
-            Civic<span className="text-burg">AI</span>
+          <span className="font-sans text-xl font-extrabold text-navy tracking-tight uppercase">
+            CIVIC<span className="text-burg">AI</span>
           </span>
         </Link>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-[10px]">
+        <div className="hidden lg:flex items-center gap-1">
           {user && (
             <>
               <NavLink to="/dashboard" active={isActive('/dashboard')}>Dashboard</NavLink>
-              <NavLink to="/file-complaint" active={isActive('/file-complaint')}>File Complaint</NavLink>
+              <NavLink to="/file-complaint" active={isActive('/file-complaint')}>Report Incident</NavLink>
             </>
           )}
           {admin && (
-            <>
-              <NavLink to="/admin" active={isActive('/admin')}>
-                {admin.role === 'super_admin' ? 'Super Admin' : `${admin.state} Admin`}
-              </NavLink>
-            </>
+            <NavLink to="/admin" active={isActive('/admin')}>
+              {admin.role === 'super_admin' ? 'Federal Oversight' : 'Regional Command'}
+            </NavLink>
           )}
         </div>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-[10px]">
+        <div className="flex items-center gap-4">
           {(user || admin) ? (
-            <div className="hidden md:flex items-center gap-3">
-              <div className="flex items-center gap-[10px]">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-burg-2 to-[#6B1010] flex items-center justify-center text-[13px] font-bold text-white">
+            <div className="hidden md:flex items-center gap-4">
+              <div className="flex items-center gap-3 pl-2 py-1 pr-1 bg-off rounded-full border border-border group hover:bg-white transition-all duration-300">
+                <span className="text-xs font-bold text-navy px-2 uppercase tracking-wide">
+                  {user?.name || admin?.name || 'User'}
+                </span>
+                <div className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center text-[10px] font-black group-hover:bg-burg transition-colors">
                   {user?.name?.[0] || admin?.name?.[0] || 'U'}
-                </div>
-                <div className="flex flex-col">
-                  <p className="text-[13px] text-muted leading-tight">
-                    {user?.name || admin?.name || (user?.phone?.slice(-4) ? `···${user.phone.slice(-4)}` : '')}
-                  </p>
-                  <p className="text-[10px] text-dim capitalize leading-tight">
-                    {admin ? admin.role.replace('_', ' ') : 'Citizen'}
-                  </p>
                 </div>
               </div>
               <button
                 onClick={logout}
-                className="text-xs text-muted hover:text-burg transition-colors px-3 py-1.5 rounded"
+                className="p-2.5 rounded-full bg-off text-muted hover:text-burg hover:bg-burg/5 transition-all duration-300"
+                title="Sign Out"
               >
-                Sign out
+                <LogOut size={18} />
               </button>
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-2">
-              <Link to="/login" className="px-[18px] py-[7px] bg-navy text-white rounded font-semibold text-xs cursor-pointer hover:bg-[#2a2a2a] transition-colors whitespace-nowrap">
-                Login / Sign Up
+              <Link to="/login" className="btn-primary py-2.5 px-6">
+                Get Started
               </Link>
             </div>
           )}
 
-          {/* Mobile Menu Toggle */}
-          <div className="md:flex hidden items-center pr-2" style={{ display: 'flex' }}>
-            <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-muted hover:text-text transition-colors p-[4px] ml-2 block relative z-50">
-              {menuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
+          {/* Mobile Toggle */}
+          <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden text-navy p-2">
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
 
-      {/* Mobile Dropdown Menu */}
-      {menuOpen && (
-        <div className="absolute top-[52px] left-0 w-full bg-white border-b border-border shadow-2xl flex flex-col py-2 px-6 md:hidden z-40">
-          {user && (
-            <>
-              <Link to="/dashboard" onClick={() => setMenuOpen(false)} className={`py-4 border-b border-border/40 text-[15px] font-semibold ${isActive('/dashboard') ? 'text-burg' : 'text-text'}`}>Dashboard</Link>
-              <Link to="/file-complaint" onClick={() => setMenuOpen(false)} className={`py-4 border-b border-border/40 text-[15px] font-semibold ${isActive('/file-complaint') ? 'text-burg' : 'text-text'}`}>File Complaint</Link>
-            </>
-          )}
-          {admin && (
-            <>
-              <Link to="/admin" onClick={() => setMenuOpen(false)} className={`py-4 border-b border-border/40 text-[15px] font-semibold ${isActive('/admin') ? 'text-burg' : 'text-text'}`}>
-                {admin.role === 'super_admin' ? 'Super Admin' : `${admin.state} Admin`}
-              </Link>
-            </>
-          )}
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 top-[72px] bg-white z-[90] p-8 lg:hidden border-t border-border"
+          >
+            <div className="flex flex-col gap-8 max-w-lg mx-auto">
+               {(user || admin) && (
+                 <div className="flex items-center gap-4 pb-8 border-b border-border">
+                    <div className="w-14 h-14 rounded-full bg-navy text-white flex items-center justify-center text-xl font-black">
+                       {user?.name?.[0] || admin?.name?.[0]}
+                    </div>
+                    <div>
+                        <p className="text-xl font-extrabold text-navy tracking-tight">{user?.name || admin?.name}</p>
+                        <p className="text-sm font-medium text-muted uppercase tracking-wider">{admin ? admin.role : 'Citizen Account'}</p>
+                    </div>
+                 </div>
+               )}
 
-          {(user || admin) ? (
-            <div className="py-5 flex items-center justify-between">
-              <div className="flex items-center gap-[12px]">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-burg-2 to-[#6B1010] flex items-center justify-center text-[15px] font-bold text-white shadow-sm">
-                  {user?.name?.[0] || admin?.name?.[0] || 'U'}
-                </div>
-                <div className="flex flex-col">
-                  <p className="text-[15px] font-bold text-text leading-tight">
-                    {user?.name || admin?.name || (user?.phone?.slice(-4) ? `···${user.phone.slice(-4)}` : '')}
-                  </p>
-                  <p className="text-[12px] text-muted capitalize leading-tight font-medium mt-0.5">
-                    {admin ? admin.role.replace('_', ' ') : 'Citizen'}
-                  </p>
-                </div>
+              <div className="flex flex-col gap-4">
+                {user && (
+                  <>
+                    <MobileNavLink to="/dashboard" onClick={() => setMenuOpen(false)}>Dashboard View</MobileNavLink>
+                    <MobileNavLink to="/file-complaint" onClick={() => setMenuOpen(false)}>Report Case</MobileNavLink>
+                  </>
+                )}
+                {admin && (
+                  <MobileNavLink to="/admin" onClick={() => setMenuOpen(false)}>Operations Center</MobileNavLink>
+                )}
               </div>
-              <button onClick={() => { logout(); setMenuOpen(false); }} className="text-[13px] font-bold text-burg hover:text-white hover:bg-burg transition-colors bg-burg-bg px-4 py-2 rounded-[6px]">Sign out</button>
+
+              {(user || admin) ? (
+                <button onClick={logout} className="btn-primary w-full py-5">Sign Out</button>
+              ) : (
+                <Link to="/login" onClick={() => setMenuOpen(false)} className="btn-primary w-full py-5 text-center">Get Started</Link>
+              )}
             </div>
-          ) : (
-            <Link to="/login" onClick={() => setMenuOpen(false)} className="py-5 text-[14px] font-bold text-navy text-center uppercase tracking-wider my-2 bg-off rounded-[6px]">Login / Sign Up</Link>
-          )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }
@@ -128,13 +125,19 @@ function NavLink({ to, active, children }) {
   return (
     <Link
       to={to}
-      className={`px-3 py-1.5 text-[13px] font-medium transition-all duration-200 ${
-        active
-          ? 'text-burg'
-          : 'text-muted hover:text-text'
+      className={`px-4 py-2 text-sm font-bold transition-all duration-300 rounded-xl ${
+        active ? 'bg-off text-navy' : 'text-muted hover:text-navy hover:bg-off/50'
       }`}
     >
       {children}
     </Link>
   );
+}
+
+function MobileNavLink({ to, onClick, children }) {
+   return (
+      <Link to={to} onClick={onClick} className="text-3xl font-extrabold text-navy tracking-tight flex justify-between items-center group transition-colors hover:text-burg">
+         {children} <ChevronRight size={24} className="text-burg opacity-0 group-hover:opacity-100 transition-all -translate-x-4 group-hover:translate-x-0" />
+      </Link>
+   );
 }
