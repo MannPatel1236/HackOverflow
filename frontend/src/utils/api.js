@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// ✅ Correct way
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5001/api',
   timeout: 30000,
@@ -34,8 +35,7 @@ export const updateProfile = (data) => API.patch('/auth/profile', data);
 export const adminLogin = (email, password) => API.post('/auth/admin/login', { email, password });
 
 // ── COMPLAINTS ─────────────────────────────────────────────────────────────
-export const fileComplaint = (formData) =>
-  API.post('/complaints/file', formData);
+export const fileComplaint = (formData) => API.post('/complaints/file', formData);
 export const trackComplaint = (trackingId) => API.get(`/complaints/track/${trackingId}`);
 export const getMyComplaints = () => API.get('/complaints/my');
 export const getComplaints = (params) => API.get('/complaints', { params });
