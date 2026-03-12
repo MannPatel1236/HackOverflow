@@ -10,6 +10,7 @@ const authRoutes = require('./routes/auth');
 const complaintRoutes = require('./routes/complaints');
 const whatsappRoutes = require('./routes/whatsapp');
 const adminRoutes = require('./routes/admin');
+const taskRoutes = require('./routes/taskRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -53,6 +54,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/tasks', taskRoutes);
 
 // Serve uploaded images statically
 const path = require('path');

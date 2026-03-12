@@ -28,7 +28,7 @@ API.interceptors.response.use(
 
 // ── AUTH ───────────────────────────────────────────────────────────────────
 export const sendOTP = (phone) => API.post('/auth/send-otp', { phone });
-export const verifyOTP = (phone, otp, name) => API.post('/auth/verify-otp', { phone, otp, name });
+export const verifyOTP = (phone, otp, name, role) => API.post('/auth/verify-otp', { phone, otp, name, role });
 export const getMe = () => API.get('/auth/me');
 export const updateProfile = (data) => API.patch('/auth/profile', data);
 export const adminLogin = (email, password) => API.post('/auth/admin/login', { email, password });
@@ -50,5 +50,11 @@ export const getLeaderboard = () => API.get('/admin/leaderboard');
 export const createAdmin = (data) => API.post('/admin/create', data);
 export const listAdmins = () => API.get('/admin/list');
 export const deleteAdmin = (id) => API.delete(`/admin/${id}`);
+
+// ── TASKS ──────────────────────────────────────────────────────────────────
+export const getTasks = () => API.get('/tasks');
+export const createTask = (data) => API.post('/tasks', data);
+export const applyForTask = (taskId, data) => API.post(`/tasks/${taskId}/apply`, data);
+export const approveTaskApplication = (taskId, data) => API.post(`/tasks/${taskId}/approve`, data);
 
 export default API;

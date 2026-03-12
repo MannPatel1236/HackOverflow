@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import Navbar from '../components/Navbar';
-import { getNationalStats, getLeaderboard, createAdmin, listAdmins, deleteAdmin } from '../utils/api';
+import { getNationalStats, getLeaderboard, createAdmin, listAdmins, deleteAdmin, getTasks, createTask, approveTaskApplication, getComplaints, updateComplaintStatus } from '../utils/api';
 
 // ── Inline SVG Icons ──────────────────────────────────────────────────────
 const SvgIcons = {
@@ -114,6 +114,18 @@ export default function SuperAdminDashboard() {
   const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '', role: 'state_admin', state: '' });
   const [createLoading, setCreateLoading] = useState(false);
   const [createMsg, setCreateMsg] = useState('');
+  
+  // Tasks State
+  const [tasks, setTasks] = useState([]);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskForm, setTaskForm] = useState({ title: '', description: '', budget_estimate: '', complaintId: null });
+
+  // Complaints State
+  const [complaints, setComplaints] = useState([]);
+  const [complaintPagination, setComplaintPagination] = useState({});
+  const [complaintFilters, setComplaintFilters] = useState({ state: '', department: '', status: '', page: 1 });
+  const [complaintLoading, setComplaintLoading] = useState(false);
+
   const intervalRef = useRef(null);
 
   useEffect(() => {
@@ -132,14 +144,16 @@ export default function SuperAdminDashboard() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [statsRes, lbRes, adminRes] = await Promise.all([
+      const [statsRes, lbRes, adminRes, tasksRes] = await Promise.all([
         getNationalStats(),
         getLeaderboard(),
         listAdmins(),
+        getTasks()
       ]);
       setNationalStats(statsRes.data);
       setLeaderboard(lbRes.data.leaderboard);
       setAdmins(adminRes.data.admins);
+      setTasks(tasksRes.data);
     } catch (e) {
       console.error(e);
     } finally {
@@ -175,11 +189,41 @@ export default function SuperAdminDashboard() {
     fetchAll();
   };
 
+  const handleCreateTask = async (e) => {
+    e.preventDefault();
+    try {
+      await createTask({ title: taskForm.title, description: taskForm.description, budget_estimate: Number(taskForm.budget_estimate) });
+      setShowTaskModal(false);
+      alert('Partner Task Created Successfully!');
+      fetchAll();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to create task');
+    }
+  };
+
+  const fetchComplaints = async (filters) => {
+    setComplaintLoading(true);
+    try {
+      const res = await getComplaints({ ...filters, limit: 20 });
+      setComplaints(res.data.complaints);
+      setComplaintPagination(res.data.pagination);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setComplaintLoading(false);
+    }
+  };
+
+  // Fetch complaints whenever tab switches to complaints or filters change
+  useEffect(() => {
+    if (tab === 'complaints') fetchComplaints(complaintFilters);
+  }, [tab, complaintFilters]);
+
   const stats = nationalStats?.stats;
   const stateStats = nationalStats?.state_stats || [];
   const deptBreakdown = nationalStats?.department_breakdown || [];
 
-  const TABS = ['overview', 'leaderboard', 'admins'];
+  const TABS = ['overview', 'leaderboard', 'complaints', 'admins', 'partner tasks'];
 
   return (
     <div className="min-h-screen bg-cream flex flex-col">
@@ -443,7 +487,110 @@ export default function SuperAdminDashboard() {
           </div>
         )}
 
+        {/* ── COMPLAINTS TAB ───────────────────────── */}
+        {tab === 'complaints' && (
+          <div className="space-y-[20px] animate-fade-in">
+            {/* Filters */}
+            <div className="bg-white border border-border rounded-[8px] p-[16px] flex flex-wrap gap-3 items-end shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
+              <div>
+                <label className="block text-[10px] font-bold text-muted uppercase mb-1">State</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Maharashtra"
+                  value={complaintFilters.state}
+                  onChange={e => setComplaintFilters(f => ({ ...f, state: e.target.value, page: 1 }))}
+                  className="input py-[7px] text-[13px] w-[160px]"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-muted uppercase mb-1">Department</label>
+                <select value={complaintFilters.department} onChange={e => setComplaintFilters(f => ({ ...f, department: e.target.value, page: 1 }))} className="input py-[7px] text-[13px]">
+                  <option value="">All</option>
+                  {['Roads', 'Sanitation', 'Water', 'Electricity', 'Other'].map(d => <option key={d}>{d}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-muted uppercase mb-1">Status</label>
+                <select value={complaintFilters.status} onChange={e => setComplaintFilters(f => ({ ...f, status: e.target.value, page: 1 }))} className="input py-[7px] text-[13px]">
+                  <option value="">All</option>
+                  {['Registered', 'Under Review', 'In Progress', 'Resolved'].map(s => <option key={s}>{s}</option>)}
+                </select>
+              </div>
+              <button onClick={() => setComplaintFilters({ state: '', department: '', status: '', page: 1 })} className="btn-ghost text-[12px] py-[7px] px-3 border border-border">
+                Clear
+              </button>
+              <span className="ml-auto text-[12px] text-muted font-medium">
+                {complaintPagination.total ?? 0} total complaints
+              </span>
+            </div>
+
+            {/* Table */}
+            <div className="bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-hidden">
+              {complaintLoading ? (
+                <div className="py-16 text-center text-muted text-[13px]">Loading complaints...</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[13px] border-collapse min-w-[800px]">
+                    <thead>
+                      <tr className="bg-off border-b border-border">
+                        {['Tracking ID', 'State', 'District', 'Department', 'Severity', 'Status', 'Filed'].map(h => (
+                          <th key={h} className="px-[16px] py-[11px] text-left text-[10px] font-bold text-muted uppercase tracking-wider">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {complaints.map(c => {
+                        const statusColor = {
+                          'Registered': 'bg-blue-50 text-blue-700 border-blue-200',
+                          'Under Review': 'bg-amber-50 text-amber-700 border-amber-200',
+                          'In Progress': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                          'Resolved': 'bg-green-50 text-green-700 border-green-200',
+                        }[c.status] || 'bg-off text-muted';
+                        const sevColor = { Critical: 'text-red-600', High: 'text-orange-600', Medium: 'text-amber-600', Low: 'text-green-600' }[c.severity] || 'text-muted';
+                        return (
+                          <tr key={c._id} className="border-b border-border/50 hover:bg-cream/50 transition-colors">
+                            <td className="px-[16px] py-[12px] font-mono text-[11px] text-muted">{c.tracking_id}</td>
+                            <td className="px-[16px] py-[12px] font-medium text-text">{c.state || <span className="text-muted italic">unset</span>}</td>
+                            <td className="px-[16px] py-[12px] text-muted">{c.district || '—'}</td>
+                            <td className="px-[16px] py-[12px] text-muted">{c.department}</td>
+                            <td className={`px-[16px] py-[12px] font-bold ${sevColor}`}>{c.severity}</td>
+                            <td className="px-[16px] py-[12px]">
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${statusColor}`}>{c.status}</span>
+                            </td>
+                            <td className="px-[16px] py-[12px] text-muted font-mono text-[11px]">{new Date(c.filed_at).toLocaleDateString('en-IN')}</td>
+                          </tr>
+                        );
+                      })}
+                      {complaints.length === 0 && (
+                        <tr><td colSpan={7} className="py-[40px] text-center text-muted font-medium">No complaints found for the selected filters.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Pagination */}
+              {complaintPagination.pages > 1 && (
+                <div className="px-[16px] py-[12px] border-t border-border bg-off flex items-center justify-between">
+                  <button
+                    disabled={complaintFilters.page <= 1}
+                    onClick={() => setComplaintFilters(f => ({ ...f, page: f.page - 1 }))}
+                    className="btn-ghost text-[12px] py-1 px-3 border border-border disabled:opacity-40"
+                  >← Prev</button>
+                  <span className="text-[12px] text-muted">Page {complaintFilters.page} of {complaintPagination.pages}</span>
+                  <button
+                    disabled={complaintFilters.page >= complaintPagination.pages}
+                    onClick={() => setComplaintFilters(f => ({ ...f, page: f.page + 1 }))}
+                    className="btn-ghost text-[12px] py-1 px-3 border border-border disabled:opacity-40"
+                  >Next →</button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ── ADMINS TAB ──────────────────────────── */}
+
         {tab === 'admins' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-[24px] animate-fade-in">
             {/* Create Admin */}
@@ -544,6 +691,120 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
             
+          </div>
+        )}
+
+        {/* ── PARTNER TASKS TAB ─────────────────────── */}
+        {tab === 'partner tasks' && (
+          <div className="space-y-[24px] animate-fade-in">
+            <div className="flex justify-between items-center bg-white p-[16px] rounded-[8px] border border-border shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
+              <div>
+                <h2 className="text-[16px] font-bold text-text flex items-center gap-2">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+                  National Partner Tasks
+                </h2>
+                <p className="text-[12px] text-muted">Manage all active bids and sponsorships from contractors across the country.</p>
+              </div>
+              <button 
+                onClick={() => { setTaskForm({ title: '', description: '', budget_estimate: '' }); setShowTaskModal(true); }}
+                className="btn-primary py-2 px-4 shadow-md bg-indigo-600 hover:bg-indigo-700"
+              >
+                + Create Federal Task
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {tasks.length === 0 ? (
+                <div className="col-span-full p-[40px] text-center bg-white border border-border rounded-[8px]">
+                  <p className="text-muted font-medium text-[13px]">No Partner tasks available nationwide.</p>
+                </div>
+              ) : (
+                tasks.map(task => (
+                  <div key={task._id} className="p-4 bg-white border border-border rounded-[8px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col">
+                    <div className="flex gap-2 justify-between mb-3">
+                      <span className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded ${task.status === 'Open' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>{task.status}</span>
+                      <span className="text-[13px] font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">₹{task.budget_estimate?.toLocaleString()}</span>
+                    </div>
+                    <h4 className="font-bold text-[15px] text-text mb-2 line-clamp-2">{task.title}</h4>
+                    <p className="text-[12px] text-muted line-clamp-3 mb-4 flex-1">{task.description}</p>
+                    
+                    <div className="mt-auto pt-4 border-t border-border">
+                      <h5 className="text-[11px] font-bold text-muted uppercase mb-3 px-1">Applications ({task.applications?.length || 0})</h5>
+                      <div className="space-y-2">
+                        {task.applications?.map(app => (
+                          <div key={app._id} className="flex justify-between items-center bg-cream/50 p-3 rounded-[6px] border border-border">
+                            <div className="flex-1 min-w-0 mr-3">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${app.role === 'Sponsor' ? 'bg-green-bg text-green border border-green/20' : 'bg-burg-bg text-burg border border-burg/20'}`}>{app.role}</span>
+                                <span className="font-mono text-[13px] font-bold text-text">₹{app.bid_amount?.toLocaleString()}</span>
+                              </div>
+                              <p className="text-[11px] text-muted italic line-clamp-1">{app.message || 'No message provided'}</p>
+                            </div>
+                            {app.status === 'Pending' && task.status === 'Open' ? (
+                              <button 
+                                onClick={async () => {
+                                  try {
+                                    await approveTaskApplication(task._id, { application_id: app._id });
+                                    fetchAll();
+                                    alert('Application Approved! Task Assigned.');
+                                  } catch(e) { alert('Error approving application'); }
+                                }}
+                                className="bg-indigo-600 text-white text-[11px] px-3 py-1.5 rounded-[4px] font-bold hover:bg-indigo-700 shrink-0 shadow-sm transition-colors"
+                              >
+                                Accept
+                              </button>
+                            ) : (
+                              <span className={`text-[11px] font-bold uppercase tracking-wider shrink-0 ${app.status === 'Approved' ? 'text-green' : 'text-muted'}`}>{app.status}</span>
+                            )}
+                          </div>
+                        ))}
+                        {task.applications?.length === 0 && (
+                          <div className="py-2 text-center border border-dashed border-border rounded flex items-center justify-center gap-2 bg-off">
+                             <span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                             <span className="text-[11px] text-muted font-medium">Waiting for bids</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Task Creation Modal */}
+        {showTaskModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-white rounded-[12px] w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
+              <div className="px-[24px] py-[20px] border-b border-border bg-off flex justify-between items-center">
+                <h3 className="font-bold text-[16px] text-text tracking-wide flex items-center gap-2">
+                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+                   Create Federal Task
+                </h3>
+                <button onClick={() => setShowTaskModal(false)} className="text-muted hover:text-burg font-bold text-[20px] leading-none">×</button>
+              </div>
+              <form onSubmit={handleCreateTask} className="p-[24px] space-y-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-muted uppercase mb-1">Task Title</label>
+                  <input type="text" value={taskForm.title} onChange={e => setTaskForm({...taskForm, title: e.target.value})} className="input w-full bg-cream focus:border-indigo-400" required />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-muted uppercase mb-1">Public Description</label>
+                  <textarea value={taskForm.description} onChange={e => setTaskForm({...taskForm, description: e.target.value})} className="input w-full bg-cream focus:border-indigo-400 min-h-[100px]" required />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-muted uppercase mb-1">Estimated Budget (₹)</label>
+                  <input type="number" value={taskForm.budget_estimate} onChange={e => setTaskForm({...taskForm, budget_estimate: e.target.value})} className="input w-full bg-cream focus:border-indigo-400" required min="1" />
+                </div>
+                <div className="pt-4 flex gap-3 border-t border-border mt-6">
+                  <button type="button" onClick={() => setShowTaskModal(false)} className="btn-ghost flex-1 py-2.5 text-[13px] font-bold text-muted border border-border">Cancel</button>
+                  <button type="submit" className="flex-1 py-2.5 text-[13px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-[4px] transition-colors shadow-md">
+                    Publish Task to Partners
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 

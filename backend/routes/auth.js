@@ -58,7 +58,7 @@ router.post('/send-otp', async (req, res) => {
  */
 router.post('/verify-otp', async (req, res) => {
   try {
-    const { phone, otp, name } = req.body;
+    const { phone, otp, name, role } = req.body;
     if (!phone || !otp) return res.status(400).json({ error: 'Phone and OTP required' });
 
     const user = await User.findOne({ phone });
@@ -73,6 +73,12 @@ router.post('/verify-otp', async (req, res) => {
 
     // Update name if provided (first time)
     if (name && !user.name) user.name = name;
+    
+    // Set role to Partner if requested
+    if (role === 'Partner' && user.role === 'Citizen') {
+      user.role = 'Partner';
+    }
+
     user.otp = undefined; // Clear OTP after use
     await user.save();
 
@@ -84,7 +90,7 @@ router.post('/verify-otp', async (req, res) => {
 
     res.json({
       token,
-      user: { _id: user._id, phone: user.phone, name: user.name, preferred_language: user.preferred_language },
+      user: { _id: user._id, phone: user.phone, name: user.name, role: user.role, preferred_language: user.preferred_language },
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

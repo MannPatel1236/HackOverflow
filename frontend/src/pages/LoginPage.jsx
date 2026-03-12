@@ -4,10 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { sendOTP, verifyOTP } from '../utils/api';
 
 export default function LoginPage() {
-  const [step, setStep] = useState('phone'); // 'phone' | 'otp' | 'name'
+  const [step, setStep] = useState('phone');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [name, setName] = useState('');
+  const [role, setRole] = useState('Citizen');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [devOtp, setDevOtp] = useState('');
@@ -35,7 +36,7 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await verifyOTP(`+91${phone.replace(/\D/g, '')}`, otp, name || undefined);
+      const res = await verifyOTP(`+91${phone.replace(/\D/g, '')}`, otp, name || undefined, role);
       loginUser(res.data.token, res.data.user);
       navigate('/dashboard');
     } catch (e) {
@@ -127,6 +128,37 @@ export default function LoginPage() {
                     placeholder="What should we call you?"
                     className="input"
                   />
+                </div>
+
+                {/* Role Selector */}
+                <div className="mb-[14px]">
+                  <label className="block text-[11px] font-semibold text-text mb-[8px]">I am registering as</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setRole('Citizen')}
+                      className={`p-3 rounded-[5px] border text-[12px] font-bold transition-all cursor-pointer ${
+                        role === 'Citizen'
+                          ? 'border-burg bg-burg/5 text-burg'
+                          : 'border-border text-muted hover:border-burg/40'
+                      }`}
+                    >
+                      🏠 Citizen
+                      <p className="text-[10px] font-normal opacity-70 mt-0.5">File complaints</p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRole('Partner')}
+                      className={`p-3 rounded-[5px] border text-[12px] font-bold transition-all cursor-pointer ${
+                        role === 'Partner'
+                          ? 'border-[#4f46e5] bg-[#4f46e5]/5 text-[#4f46e5]'
+                          : 'border-border text-muted hover:border-[#4f46e5]/40'
+                      }`}
+                    >
+                      🏗️ Partner
+                      <p className="text-[10px] font-normal opacity-70 mt-0.5">Contractor / Sponsor</p>
+                    </button>
+                  </div>
                 </div>
                 <div className="mb-[14px]">
                   <label className="block text-[11px] font-semibold text-text mb-[4px]">6-Digit OTP</label>

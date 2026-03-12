@@ -9,6 +9,7 @@ import FileComplaint from './pages/FileComplaint';
 import TrackComplaint from './pages/TrackComplaint';
 import StateAdminDashboard from './pages/StateAdminDashboard';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
+import PartnerDashboard from './pages/PartnerDashboard';
 
 function ProtectedUser({ children }) {
   const { user, loading } = useAuth();
@@ -47,7 +48,14 @@ function AppRoutes() {
       <Route path="/track/:trackingId" element={<TrackComplaint />} />
 
       {/* User Protected */}
-      <Route path="/dashboard" element={<ProtectedUser><UserDashboard /></ProtectedUser>} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedUser>
+            {user?.role === 'Partner' ? <PartnerDashboard /> : <UserDashboard />}
+          </ProtectedUser>
+        }
+      />
       <Route path="/file-complaint" element={<ProtectedUser><FileComplaint /></ProtectedUser>} />
 
       {/* Admin Protected */}

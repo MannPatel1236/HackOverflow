@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import Navbar from '../components/Navbar';
 import ComplaintCard from '../components/ComplaintCard';
 import { useAuth } from '../context/AuthContext';
-import { getComplaints, updateComplaintStatus, getMapData, getStateStats } from '../utils/api';
+import { getComplaints, updateComplaintStatus, getMapData, getStateStats, createTask, getTasks, approveTaskApplication } from '../utils/api';
 import { io } from 'socket.io-client';
 
 const STATE_CENTERS = {
@@ -83,6 +83,12 @@ export default function StateAdminDashboard() {
   const [pagination, setPagination] = useState({});
   const [lastUpdated, setLastUpdated] = useState(null);
 
+  // Partner Tasks State
+  const [tasks, setTasks] = useState([]);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskForm, setTaskForm] = useState({ title: '', description: '', budget_estimate: '', complaintId: null });
+  const [viewingTasks, setViewingTasks] = useState(false);
+
   const stateName = admin?.state || 'Maharashtra';
   const center = STATE_CENTERS[stateName] || [20.5937, 78.9629];
 
@@ -100,9 +106,16 @@ export default function StateAdminDashboard() {
       setStats(statsRes.data);
       setLastUpdated(new Date());
     } catch (e) {
-      console.error(e);
+      console.error('Complaints fetch error:', e);
     } finally {
       setLoading(false);
+    }
+    // Fetch tasks separately so failure here doesn't hide complaints
+    try {
+      const tasksRes = await getTasks();
+      setTasks(tasksRes.data);
+    } catch (e) {
+      console.warn('Tasks fetch failed (non-critical):', e.message);
     }
   }, [filters, page, stateName]);
 
@@ -123,6 +136,28 @@ export default function StateAdminDashboard() {
       fetchData();
     } catch (e) {
       throw e; // Let StageChanger handle the error toast
+    }
+  };
+
+  const handleOpenTaskModal = (complaint) => {
+    setTaskForm({
+      title: `Resolve: ${complaint.summary_en?.substring(0, 40) || 'Complaint'}...`,
+      description: complaint.raw_text,
+      budget_estimate: '',
+      complaintId: complaint._id
+    });
+    setShowTaskModal(true);
+  };
+
+  const handleCreateTask = async (e) => {
+    e.preventDefault();
+    try {
+      await createTask({ complaint_id: taskForm.complaintId, title: taskForm.title, description: taskForm.description, budget_estimate: Number(taskForm.budget_estimate) });
+      setShowTaskModal(false);
+      alert('Partner Task Created Successfully!');
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to create task');
     }
   };
 
@@ -350,6 +385,13 @@ export default function StateAdminDashboard() {
                 <span className="w-[12px] h-[2px] bg-burg"></span>
                 <h2 className="text-[13px] font-bold text-text uppercase tracking-wider">Filter Registry</h2>
               </div>
+              
+              {/* Role Toggle for Admin (Complaints vs Tasks) */}
+              <div className="flex bg-white rounded-[6px] p-1 border border-border mb-3">
+                <button onClick={() => setViewingTasks(false)} className={`flex-1 text-[12px] py-1.5 font-bold rounded ${!viewingTasks ? 'bg-burg text-white shadow' : 'text-muted'}`}>Complaints</button>
+                <button onClick={() => setViewingTasks(true)} className={`flex-1 text-[12px] py-1.5 font-bold rounded ${viewingTasks ? 'bg-indigo-600 text-white shadow' : 'text-muted'}`}>Partner Tasks</button>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
                 <select value={filters.department} onChange={(e) => setFilters({ ...filters, department: e.target.value })} className="input text-[12px] py-[6px] px-[8px] bg-white border-border focus:border-burg cursor-pointer font-medium font-sans">
                   <option value="">All Depts</option>
@@ -372,12 +414,12 @@ export default function StateAdminDashboard() {
 
              {/* Scrollable List */}
              <div className="flex-1 overflow-y-auto bg-cream/30 p-[12px] space-y-[12px]">
-                {loading ? (
+                {loading && !viewingTasks ? (
                   <div className="py-[40px] flex flex-col items-center justify-center text-center">
                      <div className="w-[30px] h-[30px] border-[2px] border-burg/30 border-t-burg rounded-full animate-spin mb-[12px]"></div>
                      <span className="text-[12px] font-bold text-muted uppercase tracking-wider">Syncing Registry...</span>
                   </div>
-                ) : complaints.length === 0 ? (
+                ) : !viewingTasks && complaints.length === 0 ? (
                   <div className="py-[60px] flex flex-col items-center justify-center text-center px-[20px]">
                      <div className="w-[48px] h-[48px] rounded-full bg-cream border border-border flex items-center justify-center mb-[12px] opacity-60">
                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
@@ -385,10 +427,56 @@ export default function StateAdminDashboard() {
                      <span className="text-[13px] font-bold text-text mb-[4px]">No Matches Found</span>
                      <p className="text-[12px] text-muted leading-relaxed">Adjust your filter parameters to see active complaints.</p>
                   </div>
-                ) : (
+                ) : !viewingTasks ? (
                   complaints.map((c) => (
-                    <ComplaintCard key={c._id} complaint={c} showActions onStatusChange={handleStatusChange} />
+                    <ComplaintCard key={c._id} complaint={c} showActions onStatusChange={handleStatusChange} onTaskCreate={handleOpenTaskModal} />
                   ))
+                ) : tasks.length === 0 ? (
+                    <div className="p-4 text-center text-muted text-[13px] mt-10">No Partner tasks available.</div>
+                ) : (
+                    tasks.map(task => (
+                      <div key={task._id} className="p-4 bg-white border border-border rounded shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                        <div className="flex gap-2 justify-between mb-2">
+                          <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${task.status === 'Open' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>{task.status}</span>
+                          <span className="text-[12px] font-mono font-bold text-indigo-700">₹{task.budget_estimate?.toLocaleString()}</span>
+                        </div>
+                        <h4 className="font-bold text-[14px] text-text mb-1 leading-snug">{task.title}</h4>
+                        
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <h5 className="text-[11px] font-bold text-muted uppercase mb-2">Applications ({task.applications?.length || 0})</h5>
+                          <div className="space-y-2">
+                            {task.applications?.map(app => (
+                              <div key={app._id} className="flex justify-between items-center bg-cream p-2.5 rounded-[4px] border border-border">
+                                <div>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${app.role === 'Sponsor' ? 'bg-green-bg text-green border border-green/20' : 'bg-burg-bg text-burg border border-burg/20'}`}>{app.role}</span>
+                                    <span className="font-mono text-[12px] font-bold text-text">₹{app.bid_amount?.toLocaleString()}</span>
+                                  </div>
+                                  <p className="text-[11px] text-muted italic line-clamp-1 pr-2">{app.message || 'No message provided'}</p>
+                                </div>
+                                {app.status === 'Pending' && task.status === 'Open' ? (
+                                  <button 
+                                    onClick={async () => {
+                                      try {
+                                        await approveTaskApplication(task._id, { application_id: app._id });
+                                        fetchData();
+                                        alert('Application Approved! Task Assigned.');
+                                      } catch(e) { alert('Error approving application'); }
+                                    }}
+                                    className="bg-indigo-600 text-white text-[11px] px-3 py-1.5 rounded-[4px] font-bold hover:bg-indigo-700 shrink-0 shadow-sm"
+                                  >
+                                    Accept
+                                  </button>
+                                ) : (
+                                  <span className={`text-[11px] font-bold uppercase tracking-wider shrink-0 ${app.status === 'Approved' ? 'text-green' : 'text-muted'}`}>{app.status}</span>
+                                )}
+                              </div>
+                            ))}
+                            {task.applications?.length === 0 && <span className="text-[11px] text-muted flex items-center gap-1.5"><span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span> Waiting for bids...</span>}
+                          </div>
+                        </div>
+                      </div>
+                    ))
                 )}
              </div>
 
@@ -415,6 +503,44 @@ export default function StateAdminDashboard() {
 
         </div>
       </div>
+
+      {/* Task Creation Modal */}
+      {showTaskModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-[12px] w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
+            <div className="px-[24px] py-[20px] border-b border-border bg-off flex justify-between items-center">
+              <h3 className="font-bold text-[16px] text-text tracking-wide flex items-center gap-2">
+                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+                 Create Partner Task
+              </h3>
+              <button onClick={() => setShowTaskModal(false)} className="text-muted hover:text-burg font-bold text-[20px] leading-none">×</button>
+            </div>
+            <form onSubmit={handleCreateTask} className="p-[24px] space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-muted uppercase mb-1">Task Title</label>
+                <input type="text" value={taskForm.title} onChange={e => setTaskForm({...taskForm, title: e.target.value})} className="input w-full bg-cream focus:border-indigo-400" required />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-muted uppercase mb-1">Public Description</label>
+                <textarea value={taskForm.description} onChange={e => setTaskForm({...taskForm, description: e.target.value})} className="input w-full bg-cream focus:border-indigo-400 min-h-[100px]" required />
+                <p className="text-[10px] text-muted mt-1 leading-tight">Partners will see this description to formulate their bids.</p>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-muted uppercase mb-1">Estimated Budget (₹)</label>
+                <input type="number" value={taskForm.budget_estimate} onChange={e => setTaskForm({...taskForm, budget_estimate: e.target.value})} className="input w-full bg-cream focus:border-indigo-400" required placeholder="e.g. 50000" min="1" />
+                <p className="text-[10px] text-muted mt-1 leading-tight">This sets expectations for Contractors. Sponsors will know the funding target.</p>
+              </div>
+              <div className="pt-4 flex gap-3 border-t border-border mt-6">
+                <button type="button" onClick={() => setShowTaskModal(false)} className="btn-ghost flex-1 py-2.5 text-[13px] font-bold text-muted border border-border">Cancel</button>
+                <button type="submit" className="flex-1 py-2.5 text-[13px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-[4px] transition-colors shadow-md">
+                  Publish Task to Partners
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

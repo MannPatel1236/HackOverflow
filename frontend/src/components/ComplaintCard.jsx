@@ -72,7 +72,7 @@ const STATUS_STYLES = {
 
 const STATUSES = ['Registered', 'Under Review', 'In Progress', 'Resolved'];
 
-export default function ComplaintCard({ complaint, showActions, onStatusChange }) {
+export default function ComplaintCard({ complaint, showActions, onStatusChange, onTaskCreate }) {
   const deptIcon = Icons[complaint.department] || Icons.Other;
   const filed = new Date(complaint.filed_at).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'short', year: 'numeric',
@@ -131,6 +131,14 @@ export default function ComplaintCard({ complaint, showActions, onStatusChange }
           >
             Track Details ↗
          </Link>
+         {showActions && typeof onTaskCreate === 'function' && (
+           <button
+             onClick={() => onTaskCreate(complaint)}
+             className="text-center text-[12px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-[5px] px-[14px] py-[8px] transition-colors"
+           >
+             + Create Partner Task
+           </button>
+         )}
          {showActions && onStatusChange && (
             <StageChanger
               complaintId={complaint._id}

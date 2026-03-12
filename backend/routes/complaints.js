@@ -263,7 +263,12 @@ router.get('/', adminAuth, async (req, res) => {
     const match = { master_id: null }; // Only show top-level or orphans
 
     if (req.admin.role === 'state_admin') {
-      match.state = { $regex: new RegExp(`^${req.admin.state}$`, 'i') };
+      // Show complaints from their state OR complaints with no state (unclassified)
+      match.$or = [
+        { state: { $regex: new RegExp(`^${req.admin.state}$`, 'i') } },
+        { state: '' },
+        { state: null },
+      ];
     } else if (state) {
       match.state = { $regex: new RegExp(`^${state}$`, 'i') };
     }
