@@ -466,4 +466,32 @@ router.get('/map/data', adminAuth, async (req, res) => {
   }
 });
 
+// ── DELETE COMPLAINT (User) ───────────────────────────────────────────────
+
+/**
+ * DELETE /api/complaints/:id
+ * Auth: User JWT
+ */
+router.delete('/:id', userAuth, async (req, res) => {
+  try {
+    const complaint = await Complaint.findById(req.params.id);
+    if (!complaint) return res.status(404).json({ error: 'Complaint not found' });
+    
+    // Check ownership
+    if (complaint.user_id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Handle children: if this is a master complaint, unlink its children
+    if (complaint.is_master) {
+      await Complaint.updateMany({ master_id: complaint._id }, { $set: { master_id: null } });
+    }
+
+    await Complaint.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Complaint deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

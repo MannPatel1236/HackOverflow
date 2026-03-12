@@ -38,6 +38,7 @@ export const fileComplaint = (formData) =>
   API.post('/complaints/file', formData);
 export const trackComplaint = (trackingId) => API.get(`/complaints/track/${trackingId}`);
 export const getMyComplaints = () => API.get('/complaints/my');
+export const deleteComplaint = (id) => API.delete(`/complaints/${id}`);
 export const getComplaints = (params) => API.get('/complaints', { params });
 export const updateComplaintStatus = (id, status, note) =>
   API.patch(`/complaints/${id}/status`, { status, note });

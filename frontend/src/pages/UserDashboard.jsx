@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ComplaintCard from '../components/ComplaintCard';
 import { useAuth } from '../context/AuthContext';
-import { getMyComplaints } from '../utils/api';
+import { getMyComplaints, deleteComplaint } from '../utils/api';
 import { Smartphone, ClipboardList, CheckCircle, Clock, Inbox } from 'lucide-react';
 
 export default function UserDashboard() {
@@ -17,6 +17,16 @@ export default function UserDashboard() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteComplaint(id);
+      setComplaints((prev) => prev.filter((c) => c._id !== id && c.tracking_id !== id));
+    } catch (err) {
+      console.error('Failed to delete complaint', err);
+      alert(err.response?.data?.error || 'Failed to delete complaint');
+    }
+  };
 
   const stats = {
     total: complaints.length,
@@ -135,7 +145,7 @@ export default function UserDashboard() {
             ) : (
               <div className="flex flex-col gap-[12px]">
                 {complaints.map((c) => (
-                  <ComplaintCard key={c._id || c.tracking_id} complaint={c} />
+                  <ComplaintCard key={c._id || c.tracking_id} complaint={c} onDelete={handleDelete} />
                 ))}
               </div>
             )}

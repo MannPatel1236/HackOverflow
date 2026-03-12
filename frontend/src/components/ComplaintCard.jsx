@@ -72,7 +72,7 @@ const STATUS_STYLES = {
 
 const STATUSES = ['Registered', 'Under Review', 'In Progress', 'Resolved'];
 
-export default function ComplaintCard({ complaint, showActions, onStatusChange, onTaskCreate }) {
+export default function ComplaintCard({ complaint, showActions, onStatusChange, onTaskCreate, onDelete }) {
   const deptIcon = Icons[complaint.department] || Icons.Other;
   const filed = new Date(complaint.filed_at).toLocaleDateString('en-IN', {
     day: 'numeric', month: 'short', year: 'numeric',
@@ -145,6 +145,19 @@ export default function ComplaintCard({ complaint, showActions, onStatusChange, 
               current={complaint.status}
               onStatusChange={onStatusChange}
             />
+         )}
+         {onDelete && (
+           <button
+             onClick={(e) => {
+               e.preventDefault();
+               if(window.confirm('Are you sure you want to delete this complaint? This cannot be undone.')) {
+                 onDelete(complaint._id || complaint.tracking_id);
+               }
+             }}
+             className="text-center text-[12px] font-bold text-burg bg-burg-bg hover:bg-burg-bg/80 border border-burg/20 rounded-[5px] px-[14px] py-[8px] transition-colors"
+           >
+             Delete Complaint
+           </button>
          )}
       </div>
 
