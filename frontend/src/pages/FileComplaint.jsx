@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { fileComplaint } from '../utils/api';
 
-const INDIAN_STATES = [
+// Common Indian states (used as datalist suggestions — not restricted to these)
+const INDIAN_STATE_SUGGESTIONS = [
   'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat',
   'Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh',
   'Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan',
@@ -11,23 +12,9 @@ const INDIAN_STATES = [
   'Delhi','Jammu and Kashmir','Ladakh',
 ];
 
-// Normalize OSM state names to our dropdown values
-const STATE_ALIASES = {
-  'maharashtra': 'Maharashtra', 'karnataka': 'Karnataka', 'tamil nadu': 'Tamil Nadu',
-  'delhi': 'Delhi', 'gujarat': 'Gujarat', 'rajasthan': 'Rajasthan',
-  'uttar pradesh': 'Uttar Pradesh', 'west bengal': 'West Bengal', 'kerala': 'Kerala',
-  'madhya pradesh': 'Madhya Pradesh', 'punjab': 'Punjab', 'telangana': 'Telangana',
-  'bihar': 'Bihar', 'andhra pradesh': 'Andhra Pradesh', 'haryana': 'Haryana',
-  'chhattisgarh': 'Chhattisgarh', 'jharkhand': 'Jharkhand', 'uttarakhand': 'Uttarakhand',
-  'odisha': 'Odisha', 'goa': 'Goa', 'assam': 'Assam', 'ladakh': 'Ladakh',
-  'jammu and kashmir': 'Jammu and Kashmir', 'himachal pradesh': 'Himachal Pradesh',
-  'manipur': 'Manipur', 'meghalaya': 'Meghalaya', 'mizoram': 'Mizoram',
-  'nagaland': 'Nagaland', 'sikkim': 'Sikkim', 'tripura': 'Tripura',
-  'arunachal pradesh': 'Arunachal Pradesh',
-};
-
 /**
- * Reverse geocode lat/lng → { state, district, city } using OSM Nominatim (free, no key).
+ * Reverse geocode lat/lng → { country, state, district, city } using OSM Nominatim.
+ * Works globally — no country restriction.
  */
 async function reverseGeocode(lat, lng) {
   try {
@@ -38,22 +25,21 @@ async function reverseGeocode(lat, lng) {
     const data = await res.json();
     const a = data.address || {};
 
-    // Resolve state
-    const rawState = (a.state || '').toLowerCase();
-    const state = STATE_ALIASES[rawState] || '';
-
-    // District: OSM uses county / state_district / district
-    const district = a.county || a.state_district || a.district || '';
-
-    // City: suburb > city_district > town > village > city
-    const city = a.suburb || a.city_district || a.town || a.village || a.city || '';
-
-    // Country
+    // Country (always first)
     const country = a.country || '';
 
-    return { state, district, city, country };
+    // State or Province — OSM uses 'state' for most countries
+    const state = a.state || a.region || a.province || '';
+
+    // District / County — OSM uses county / state_district / district
+    const district = a.county || a.state_district || a.district || '';
+
+    // City / Locality — most specific first
+    const city = a.suburb || a.city_district || a.town || a.village || a.city || a.municipality || '';
+
+    return { country, state, district, city };
   } catch {
-    return { state: '', district: '', city: '', country: '' };
+    return { country: '', state: '', district: '', city: '' };
   }
 }
 
@@ -100,62 +86,142 @@ export default function FileComplaint() {
     setRecording(false);
   };
 
+  // ── EXIF GPS Parser ──────────────────────────────────────────────────────
+  // Reads raw JPEG EXIF to extract GPS lat/lng without any library dependency.
+  const readExifGPS = (file) =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const view = new DataView(e.target.result);
+          if (view.getUint16(0, false) !== 0xFFD8) return resolve(null); // Not JPEG
+
+          let offset = 2;
+          while (offset < view.byteLength) {
+            const marker = view.getUint16(offset, false);
+            offset += 2;
+            if (marker === 0xFFE1) { // APP1 = EXIF
+              const exifStart = offset + 2;
+              const isLittleEndian = view.getUint16(exifStart, false) === 0x4949;
+              const firstIFD = exifStart + view.getUint32(exifStart + 4, isLittleEndian);
+              const numEntries = view.getUint16(firstIFD, isLittleEndian);
+
+              let gpsOffset = null;
+              for (let i = 0; i < numEntries; i++) {
+                const tag = view.getUint16(firstIFD + 2 + i * 12, isLittleEndian);
+                if (tag === 0x8825) { // GPSInfo tag
+                  gpsOffset = exifStart + view.getUint32(firstIFD + 2 + i * 12 + 8, isLittleEndian);
+                }
+              }
+              if (!gpsOffset) return resolve(null);
+
+              const gpsEntries = view.getUint16(gpsOffset, isLittleEndian);
+              const gps = {};
+              for (let i = 0; i < gpsEntries; i++) {
+                const tag = view.getUint16(gpsOffset + 2 + i * 12, isLittleEndian);
+                const valOff = gpsOffset + 2 + i * 12 + 8;
+                if (tag === 1) gps.latRef = String.fromCharCode(view.getUint8(valOff));
+                if (tag === 3) gps.lngRef = String.fromCharCode(view.getUint8(valOff));
+                if (tag === 2 || tag === 4) {
+                  const dOff = exifStart + view.getUint32(valOff, isLittleEndian);
+                  const toDecimal = () =>
+                    view.getUint32(dOff, isLittleEndian) / view.getUint32(dOff + 4, isLittleEndian) +
+                    view.getUint32(dOff + 8, isLittleEndian) / view.getUint32(dOff + 12, isLittleEndian) / 60 +
+                    view.getUint32(dOff + 16, isLittleEndian) / view.getUint32(dOff + 20, isLittleEndian) / 3600;
+                  if (tag === 2) gps.lat = toDecimal();
+                  if (tag === 4) gps.lng = toDecimal();
+                }
+              }
+
+              if (gps.lat != null && gps.lng != null) {
+                return resolve({
+                  lat: gps.latRef === 'S' ? -gps.lat : gps.lat,
+                  lng: gps.lngRef === 'W' ? -gps.lng : gps.lng,
+                });
+              }
+              return resolve(null);
+            }
+            offset += view.getUint16(offset, false);
+          }
+          resolve(null);
+        } catch { resolve(null); }
+      };
+      reader.readAsArrayBuffer(file.slice(0, 65536)); // Only first 64KB needed for EXIF
+    });
+
   // Called when user picks an image from the camera/file picker
-  const handleImageCapture = (e) => {
+  const handleImageCapture = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
 
     const remaining = 5 - capturedImages.length;
     const toAdd = files.slice(0, remaining);
 
-    // Geotag each image with the current GPS position
-    if (navigator.geolocation) {
-      setGeocoding(true);
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+    // Immediately show previews without coords first
+    const initialImages = toAdd.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+      lat: null,
+      lng: null,
+    }));
+    setCapturedImages((prev) => [...prev, ...initialImages]);
+    e.target.value = '';
 
-          const newImages = toAdd.map((file) => ({
-            file,
-            previewUrl: URL.createObjectURL(file),
-            lat, lng,
-            accuracy: Math.round(accuracy),
-          }));
-          setCapturedImages((prev) => [...prev, ...newImages]);
+    setGeocoding(true);
 
-          // Reverse geocode once to auto-fill the form
-          const geo = await reverseGeocode(lat, lng);
-          setForm((prev) => ({
-            ...prev,
-            state: prev.state || geo.state,
-            district: prev.district || geo.district,
-            city: prev.city || geo.city,
-            country: prev.country || geo.country || 'India',
-          }));
-          setGeocoding(false);
-        },
-        () => {
-          // No GPS — still attach images
-          const newImages = toAdd.map((file) => ({
-            file,
-            previewUrl: URL.createObjectURL(file),
-            lat: null, lng: null,
-          }));
-          setCapturedImages((prev) => [...prev, ...newImages]);
-          setGeocoding(false);
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    } else {
-      const newImages = toAdd.map((file) => ({
-        file,
-        previewUrl: URL.createObjectURL(file),
-        lat: null, lng: null,
-      }));
-      setCapturedImages((prev) => [...prev, ...newImages]);
+    // 1. Try reading EXIF GPS from image (works for real camera photos)
+    let lat = null, lng = null;
+    for (const file of toAdd) {
+      const exif = await readExifGPS(file);
+      if (exif) { lat = exif.lat; lng = exif.lng; break; }
     }
 
-    e.target.value = '';
+    // 2. Fallback: ask browser for current position
+    if (lat === null && navigator.geolocation) {
+      try {
+        const pos = await new Promise((res, rej) =>
+          navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000 })
+        );
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+
+        // Annotate the previews with the live GPS coords
+        setCapturedImages((prev) =>
+          prev.map((img, i) =>
+            i >= prev.length - toAdd.length
+              ? { ...img, lat, lng, accuracy: Math.round(pos.coords.accuracy) }
+              : img
+          )
+        );
+      } catch {
+        setError('⚠ Location access denied. Photos attached without GPS tag. You can fill location manually below.');
+        setGeocoding(false);
+        return;
+      }
+    } else if (lat !== null) {
+      // Annotate previews with EXIF coords
+      setCapturedImages((prev) =>
+        prev.map((img, i) =>
+          i >= prev.length - toAdd.length
+            ? { ...img, lat, lng }
+            : img
+        )
+      );
+    }
+
+    // 3. Reverse geocode coordinates → fill form
+    if (lat !== null) {
+      const geo = await reverseGeocode(lat, lng);
+      setForm((prev) => ({
+        ...prev,
+        state: prev.state || geo.state,
+        district: prev.district || geo.district,
+        city: prev.city || geo.city,
+        country: prev.country || geo.country || 'India',
+      }));
+    }
+
+    setGeocoding(false);
   };
 
   const removeImage = (idx) => {
@@ -458,49 +524,88 @@ export default function FileComplaint() {
                 </span>
               )}
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-[16px]">
-              <div>
-                <label className="text-[11px] font-semibold text-muted mb-[6px] block">State *</label>
-                <select
-                  value={form.state}
-                  onChange={(e) => setForm({ ...form, state: e.target.value })}
-                  className="input text-[14px] bg-white border-border focus:border-burg cursor-pointer"
-                >
-                  <option value="">Select state...</option>
-                  {INDIAN_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-muted mb-[6px] block">District</label>
-                <input
-                  type="text"
-                  value={form.district}
-                  onChange={(e) => setForm({ ...form, district: e.target.value })}
-                  placeholder="e.g. Mumbai Suburban"
-                  className="input text-[14px] bg-white border-border focus:border-burg"
-                />
-              </div>
-              <div>
-                <label className="text-[11px] font-semibold text-muted mb-[6px] block">City / Area</label>
-                <input
-                  type="text"
-                  value={form.city}
-                  onChange={(e) => setForm({ ...form, city: e.target.value })}
-                  placeholder="e.g. Bandra West"
-                  className="input text-[14px] bg-white border-border focus:border-burg"
-                />
-              </div>
+
+            {/* Hidden datalist for Indian state autocomplete */}
+            <datalist id="state-suggestions">
+              {INDIAN_STATE_SUGGESTIONS.map((s) => <option key={s} value={s} />)}
+            </datalist>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
+              {/* Country - always first */}
               <div>
                 <label className="text-[11px] font-semibold text-muted mb-[6px] block">Country</label>
                 <input
                   type="text"
                   value={form.country}
                   onChange={(e) => setForm({ ...form, country: e.target.value })}
-                  placeholder="e.g. India"
-                  className="input text-[14px] bg-white border-border focus:border-burg"
+                  placeholder="Auto-filled from photo location"
+                  className={`input text-[14px] bg-white border-border focus:border-burg transition-colors ${geocoding ? 'bg-amber-50 border-amber' : ''}`}
+                />
+              </div>
+
+              {/* State / Province — dropdown for India, text for other countries */}
+              <div>
+                <label className="text-[11px] font-semibold text-muted mb-[6px] flex items-center justify-between">
+                  <span>State / Province *</span>
+                  {form.country && form.country.toLowerCase() !== 'india' && (
+                    <span className="font-normal text-muted normal-case tracking-normal">({form.country})</span>
+                  )}
+                </label>
+                {(!form.country || form.country.toLowerCase() === 'india') ? (
+                  // Indian states dropdown
+                  <select
+                    value={form.state}
+                    onChange={(e) => setForm({ ...form, state: e.target.value })}
+                    className={`input text-[14px] bg-white border-border focus:border-burg cursor-pointer transition-colors ${geocoding ? 'bg-amber-50 border-amber' : ''}`}
+                  >
+                    <option value="">Select state...</option>
+                    {INDIAN_STATE_SUGGESTIONS.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                    <option value="__other__">Other / International</option>
+                  </select>
+                ) : (
+                  // Free text for non-Indian locations (auto-filled by geocoding)
+                  <input
+                    type="text"
+                    value={form.state}
+                    onChange={(e) => setForm({ ...form, state: e.target.value })}
+                    placeholder="State / Province / Region"
+                    className={`input text-[14px] bg-white border-border focus:border-burg transition-colors ${geocoding ? 'bg-amber-50 border-amber' : ''}`}
+                  />
+                )}
+              </div>
+
+              {/* District */}
+              <div>
+                <label className="text-[11px] font-semibold text-muted mb-[6px] block">District / County</label>
+                <input
+                  type="text"
+                  value={form.district}
+                  onChange={(e) => setForm({ ...form, district: e.target.value })}
+                  placeholder="Auto-filled from photo location"
+                  className={`input text-[14px] bg-white border-border focus:border-burg transition-colors ${geocoding ? 'bg-amber-50 border-amber' : ''}`}
+                />
+              </div>
+
+              {/* City */}
+              <div>
+                <label className="text-[11px] font-semibold text-muted mb-[6px] block">City / Area</label>
+                <input
+                  type="text"
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  placeholder="Auto-filled from photo location"
+                  className={`input text-[14px] bg-white border-border focus:border-burg transition-colors ${geocoding ? 'bg-amber-50 border-amber' : ''}`}
                 />
               </div>
             </div>
+
+            {/* Helper hint */}
+            <p className="text-[11px] text-muted mt-[10px] flex items-center gap-1.5">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              Upload a photo to auto-fill location, or type manually. Works for any country.
+            </p>
           </div>
 
           {error && (

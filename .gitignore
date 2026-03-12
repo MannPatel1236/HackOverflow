@@ -71,3 +71,4 @@ coverage/
 *.tar.gz
 .vercel
 .turbo
+.env

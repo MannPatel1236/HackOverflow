@@ -2,40 +2,56 @@ const twilio = require('twilio');
 const axios = require('axios');
 const FormData = require('form-data');
 
-const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+// Lazy Twilio client — only initialized on first call.
+// This prevents a crash on startup if TWILIO_ACCOUNT_SID is not set.
+let _client = null;
+function getClient() {
+  if (_client) return _client;
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const auth = process.env.TWILIO_AUTH_TOKEN;
+  if (!sid || !auth) {
+    console.warn('⚠ TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN not set. WhatsApp messages will be skipped.');
+    return null;
+  }
+  _client = twilio(sid, auth);
+  return _client;
+}
 
 /**
  * Send a WhatsApp message via Twilio
  */
 async function sendWhatsApp(to, body) {
+  const client = getClient();
+  if (!client) return null; // No Twilio credentials — skip gracefully
+
   try {
     // Ensure 'whatsapp:' prefix and clean the number
     let cleanNumber = to.replace(/[^\d+]/g, '');
     if (cleanNumber.length === 10 && !cleanNumber.startsWith('+')) {
       cleanNumber = `+91${cleanNumber}`;
     }
-    
+
     const toFormatted = cleanNumber.startsWith('whatsapp:') ? cleanNumber : `whatsapp:${cleanNumber}`;
-    
+
     console.log(`Attempting to send WhatsApp message to: ${toFormatted}`);
-    
+
     const message = await client.messages.create({
       from: process.env.TWILIO_WHATSAPP_NUMBER,
       to: toFormatted,
       body,
     });
-    
+
     console.log(`WhatsApp message sent! SID: ${message.sid}`);
     return message.sid;
   } catch (err) {
     console.error('CRITICAL: WhatsApp send failed!');
     console.error('Error Message:', err.message);
     console.error('Twilio Error Code:', err.code);
-    
+
     if (err.code === 63003 || err.code === 63015) {
       console.error('HINT: This number likely hasn\'t joined your Twilio Sandbox. Ask them to send "join <your-sandbox-keyword>" to your Twilio number.');
     }
-    
+
     // Fail gracefully so the app can continue working (e.g. returning dev_otp)
     return null;
   }
@@ -68,7 +84,7 @@ async function transcribeVoice(mediaUrl) {
     );
 
     if (error) throw error;
-    
+
     const transcript = result?.results?.channels[0]?.alternatives[0]?.transcript || '';
     if (!transcript) throw new Error('Empty transcript returned empty text.');
 
