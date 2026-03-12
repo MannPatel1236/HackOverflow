@@ -206,22 +206,17 @@ router.post('/webhook', async (req, res) => {
   if (!phone) return res.status(400).send('<Response></Response>');
 
   const msg = (Body || '').trim();
-
-  // Initialize session
-  if (!userSessions[phone]) {
-    // New session: immediately send language menu
-    userSessions[phone] = { step: 'AWAIT_LANG', language: 'en' };
-    await sendWhatsApp(phone, MESSAGES.en.greet);
-    return res.status(200).send('<Response></Response>');
-  }
-  const session = userSessions[phone];
+  const upMsg = msg.toUpperCase();
 
   try {
-    // ── STATUS CHECK (anytime) ─────────────────────────────────────────
-    if (msg.toUpperCase().startsWith('STATUS ')) {
+    // ── STATUS CHECK (Stateless) ───────────────────────────────────────
+    if (upMsg.startsWith('STATUS ')) {
       const tid = msg.split(' ')[1].toUpperCase();
       const complaint = await Complaint.findOne({ tracking_id: tid });
-      const m = M(session);
+      const user = await User.findOne({ phone });
+      const lang = user ? user.preferred_language : 'en';
+      const m = MESSAGES[lang] || MESSAGES.en;
+
       if (complaint) {
         const statusEmoji = {
           Registered: '🔵',
@@ -239,17 +234,21 @@ router.post('/webhook', async (req, res) => {
     }
 
     // ── RESTART: hi/hello/start resets the flow ────────────────────────
-    // Only outside of AWAIT_LANG so language choice '1/2/3' isn't confused with hi
     if (
-      session.step !== 'AWAIT_LANG' &&
-      (msg.toLowerCase() === 'hi' ||
-        msg.toLowerCase() === 'hello' ||
-        msg.toLowerCase() === 'start')
+      upMsg === 'HI' ||
+      upMsg === 'HELLO' ||
+      upMsg === 'START' ||
+      !userSessions[phone]
     ) {
+      if (!userSessions[phone] && upMsg !== 'HI' && upMsg !== 'HELLO' && upMsg !== 'START') {
+        // If they sent something random and have no session, we still greet them
+      }
       userSessions[phone] = { step: 'AWAIT_LANG', language: 'en' };
       await sendWhatsApp(phone, MESSAGES.en.greet);
       return res.status(200).send('<Response></Response>');
     }
+
+    const session = userSessions[phone];
 
     // ── AWAIT LANGUAGE ─────────────────────────────────────────────────
     if (session.step === 'AWAIT_LANG') {

@@ -20,7 +20,7 @@ async function testProd() {
                 const mapRes = await axios.get('https://hackoverflow-zpio.onrender.com/api/complaints/map/data?state=Maharashtra', {
                     headers: { Authorization: `Bearer ${loginRes.data.token}` }
                 });
-                console.log('Map Data returned. First item:', mapRes.data.data[0]);
+                console.log('Map Data returned. First item:', JSON.stringify(mapRes.data.data[0], null, 2));
             } catch (e) {
                 console.log('Map data fetch failed:', e.message);
             }
