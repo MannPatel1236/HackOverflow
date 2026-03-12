@@ -7,73 +7,73 @@ import { getNationalStats, getLeaderboard, createAdmin, listAdmins, deleteAdmin,
 const SvgIcons = {
   globe: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+      <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
     </svg>
   ),
   clipboard: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
     </svg>
   ),
   check: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
     </svg>
   ),
   clock: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
     </svg>
   ),
   alert: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
     </svg>
   ),
   map: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /><line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" />
     </svg>
   ),
   award: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+      <circle cx="12" cy="8" r="7" /><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
     </svg>
   ),
   chart: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+      <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
     </svg>
   ),
   roads: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 17l3-10h12l3 10"/><line x1="9" y1="17" x2="9" y2="7"/><line x1="15" y1="17" x2="15" y2="7"/>
+      <path d="M3 17l3-10h12l3 10" /><line x1="9" y1="17" x2="9" y2="7" /><line x1="15" y1="17" x2="15" y2="7" />
     </svg>
   ),
   sanitation: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+      <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6" /><path d="M14 11v6" />
     </svg>
   ),
   water: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2C6 9 4 13 4 16a8 8 0 0016 0c0-3-2-7-8-14z"/>
+      <path d="M12 2C6 9 4 13 4 16a8 8 0 0016 0c0-3-2-7-8-14z" />
     </svg>
   ),
   electricity: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
     </svg>
   ),
   pin: (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" />
     </svg>
   ),
   trash: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+      <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6" /><path d="M14 11v6" />
     </svg>
   ),
 };
@@ -114,7 +114,7 @@ export default function SuperAdminDashboard() {
   const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '', role: 'state_admin', state: '' });
   const [createLoading, setCreateLoading] = useState(false);
   const [createMsg, setCreateMsg] = useState('');
-  
+
   // Tasks State
   const [tasks, setTasks] = useState([]);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -166,7 +166,7 @@ export default function SuperAdminDashboard() {
       return setCreateMsg('All fields required');
     }
     if (newAdmin.role === 'state_admin' && !newAdmin.state) {
-        return setCreateMsg('State is required for State Admin role');
+      return setCreateMsg('State is required for State Admin role');
     }
     setCreateLoading(true);
     setCreateMsg('');
@@ -233,7 +233,7 @@ export default function SuperAdminDashboard() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-[24px] gap-[16px]">
           <div>
             <div className="text-[10px] font-bold tracking-[3px] uppercase text-navy mb-2 flex items-center gap-[10px] before:content-[''] before:w-6 before:h-[2px] before:bg-navy">
-               Federal Oversight Level
+              Federal Oversight Level
             </div>
             <h1 className="font-serif text-[28px] font-bold text-text mb-1 flex items-center gap-[8px]">
               {SvgIcons.globe} National Control Center
@@ -248,9 +248,8 @@ export default function SuperAdminDashboard() {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-[20px] py-[10px] rounded-[4px] text-[12px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                tab === t ? 'bg-navy text-white shadow-md' : 'bg-transparent text-muted hover:text-text hover:bg-off'
-              }`}
+              className={`px-[20px] py-[10px] rounded-[4px] text-[12px] font-bold uppercase tracking-wider transition-all cursor-pointer ${tab === t ? 'bg-navy text-white shadow-md' : 'bg-transparent text-muted hover:text-text hover:bg-off'
+                }`}
             >
               {t}
             </button>
@@ -272,8 +271,8 @@ export default function SuperAdminDashboard() {
               ].map((s) => (
                 <div key={s.label} className={`flex flex-col gap-1 p-4 border rounded-[6px] shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all ${s.bg} ${s.border || 'border-border'}`}>
                   <div className="flex justify-between items-center mb-1">
-                     <div className={`text-[11px] font-bold uppercase tracking-wider ${s.text === 'text-text' ? 'text-muted' : s.text}`}>{s.label}</div>
-                     <div className="opacity-40">{s.icon}</div>
+                    <div className={`text-[11px] font-bold uppercase tracking-wider ${s.text === 'text-text' ? 'text-muted' : s.text}`}>{s.label}</div>
+                    <div className="opacity-40">{s.icon}</div>
                   </div>
                   <div className={`font-serif text-[28px] font-black leading-none ${s.text}`}>{s.value ?? '-'}</div>
                 </div>
@@ -329,11 +328,11 @@ export default function SuperAdminDashboard() {
                                   <span className="font-bold text-[#1D4ED8] bg-[#EFF6FF] px-1 rounded">{s.avg_resolve_days ?? '-'}d</span>
                                 </div>
                                 {s.sla_breaches > 0 && (
-                                   <div className="pt-[4px] border-t border-border">
-                                      <span className="text-[11px] font-bold uppercase tracking-wider text-burg flex items-center gap-1">
-                                         {s.sla_breaches} Escalations
-                                      </span>
-                                   </div>
+                                  <div className="pt-[4px] border-t border-border">
+                                    <span className="text-[11px] font-bold uppercase tracking-wider text-burg flex items-center gap-1">
+                                      {s.sla_breaches} Escalations
+                                    </span>
+                                  </div>
                                 )}
                               </div>
                             </div>
@@ -368,7 +367,7 @@ export default function SuperAdminDashboard() {
                 {/* Dept Breakdown */}
                 <div className="card p-[20px] bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
                   <h3 className="text-[13px] font-bold text-text uppercase tracking-wider mb-[16px] flex items-center gap-[8px]">
-                     <span className="w-[12px] h-[2px] bg-burg"></span> By Department
+                    <span className="w-[12px] h-[2px] bg-burg"></span> By Department
                   </h3>
                   <div className="space-y-[14px]">
                     {deptBreakdown.map((d) => {
@@ -393,7 +392,7 @@ export default function SuperAdminDashboard() {
                 <div className="card overflow-hidden bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
                   <div className="px-[20px] py-[16px] border-b border-border bg-off">
                     <h3 className="text-[13px] font-bold text-text uppercase tracking-wider flex items-center gap-[8px]">
-                       <span className="w-[12px] h-[2px] bg-navy"></span> State Operations Summary
+                      <span className="w-[12px] h-[2px] bg-navy"></span> State Operations Summary
                     </h3>
                   </div>
                   <div className="overflow-y-auto max-h-[220px]">
@@ -431,15 +430,15 @@ export default function SuperAdminDashboard() {
         {tab === 'leaderboard' && (
           <div className="space-y-[16px] animate-fade-in">
             <div className="bg-white border border-border rounded-[6px] p-[16px] flex items-start gap-[12px]">
-               {SvgIcons.chart}
-               <div>
-                  <h3 className="text-[13px] font-bold text-text uppercase tracking-wider mb-[2px]">Performance Matrix</h3>
-                  <p className="text-[12px] text-muted font-medium leading-[1.6]">
-                    Jurisdictions algorithmically ranked by composite operational index: <span className="text-text font-bold">50%</span> Resolution Rate + <span className="text-text font-bold">30%</span> Speed (TAT) + <span className="text-text font-bold">20%</span> SLA Adherence.
-                  </p>
-               </div>
+              {SvgIcons.chart}
+              <div>
+                <h3 className="text-[13px] font-bold text-text uppercase tracking-wider mb-[2px]">Performance Matrix</h3>
+                <p className="text-[12px] text-muted font-medium leading-[1.6]">
+                  Jurisdictions algorithmically ranked by composite operational index: <span className="text-text font-bold">50%</span> Resolution Rate + <span className="text-text font-bold">30%</span> Speed (TAT) + <span className="text-text font-bold">20%</span> SLA Adherence.
+                </p>
+              </div>
             </div>
-            
+
             <div className="card overflow-hidden bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[800px]">
@@ -559,7 +558,7 @@ export default function SuperAdminDashboard() {
                             </td>
                             <td className="px-[16px] py-[12px] text-muted font-mono text-[11px]">{new Date(c.filed_at).toLocaleDateString('en-IN')}</td>
                             <td className="px-[16px] py-[12px]">
-                              <button 
+                              <button
                                 onClick={() => {
                                   setTaskForm({ title: `Resolution: ${c.summary_en || c.tracking_id}`, description: `Task to resolve complaint ${c.tracking_id}: ${c.raw_text}`, budget_estimate: '', complaintId: c._id });
                                   setShowTaskModal(true);
@@ -607,7 +606,7 @@ export default function SuperAdminDashboard() {
             {/* Create Admin */}
             <div className="card p-[28px] bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)] h-fit">
               <h2 className="text-[14px] font-bold text-text uppercase tracking-wider mb-[24px] flex items-center gap-[8px]">
-                 <span className="w-[12px] h-[2px] bg-navy"></span> Provision Access Profile
+                <span className="w-[12px] h-[2px] bg-navy"></span> Provision Access Profile
               </h2>
               <div className="space-y-[16px]">
                 {[
@@ -626,7 +625,7 @@ export default function SuperAdminDashboard() {
                     />
                   </div>
                 ))}
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
                   <div>
                     <label className="block text-[11px] font-bold text-muted uppercase tracking-wider mb-[6px]">Clearance Level</label>
@@ -669,11 +668,11 @@ export default function SuperAdminDashboard() {
             <div className="card overflow-hidden bg-white border border-border rounded-[8px] shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex flex-col h-[600px]">
               <div className="px-[20px] py-[16px] border-b border-border bg-off flex justify-between items-center shrink-0">
                 <h2 className="text-[13px] font-bold text-text uppercase tracking-wider flex items-center gap-[8px]">
-                   <span className="w-[12px] h-[2px] bg-navy"></span> Active Personnel Registry
+                  <span className="w-[12px] h-[2px] bg-navy"></span> Active Personnel Registry
                 </h2>
                 <span className="text-[11px] font-bold bg-white px-2 py-0.5 rounded border border-border text-muted">{admins.length} Total</span>
               </div>
-              
+
               <div className="divide-y divide-border/60 overflow-y-auto flex-1 bg-cream/30">
                 {admins.map((a) => (
                   <div key={a._id} className="px-[20px] py-[16px] flex items-center justify-between hover:bg-white transition-colors group">
@@ -701,7 +700,7 @@ export default function SuperAdminDashboard() {
                 )}
               </div>
             </div>
-            
+
           </div>
         )}
 
@@ -711,12 +710,12 @@ export default function SuperAdminDashboard() {
             <div className="flex justify-between items-center bg-white p-[16px] rounded-[8px] border border-border shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
               <div>
                 <h2 className="text-[16px] font-bold text-text flex items-center gap-2">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2" /><rect x="9" y="9" width="6" height="6" /></svg>
                   National Partner Tasks
                 </h2>
                 <p className="text-[12px] text-muted">Manage all active bids and sponsorships from contractors across the country.</p>
               </div>
-              <button 
+              <button
                 onClick={() => { setTaskForm({ title: '', description: '', budget_estimate: '' }); setShowTaskModal(true); }}
                 className="btn-primary py-2 px-4 shadow-md bg-indigo-600 hover:bg-indigo-700"
               >
@@ -738,7 +737,7 @@ export default function SuperAdminDashboard() {
                     </div>
                     <h4 className="font-bold text-[15px] text-text mb-2 line-clamp-2">{task.title}</h4>
                     <p className="text-[12px] text-muted line-clamp-3 mb-4 flex-1">{task.description}</p>
-                    
+
                     <div className="mt-auto pt-4 border-t border-border">
                       <h5 className="text-[11px] font-bold text-muted uppercase mb-3 px-1">Applications ({task.applications?.length || 0})</h5>
                       <div className="space-y-2">
@@ -756,13 +755,13 @@ export default function SuperAdminDashboard() {
                               </div>
                             </div>
                             {app.status === 'Pending' && task.status === 'Open' ? (
-                              <button 
+                              <button
                                 onClick={async () => {
                                   try {
                                     await approveTaskApplication(task._id, { application_id: app._id });
                                     fetchAll();
                                     alert('Application Approved! Task Assigned.');
-                                  } catch(e) { alert('Error approving application'); }
+                                  } catch (e) { alert('Error approving application'); }
                                 }}
                                 className="bg-indigo-600 text-white text-[11px] px-3 py-1.5 rounded-[4px] font-bold hover:bg-indigo-700 shrink-0 shadow-sm transition-colors"
                               >
@@ -775,8 +774,8 @@ export default function SuperAdminDashboard() {
                         ))}
                         {task.applications?.length === 0 && (
                           <div className="py-2 text-center border border-dashed border-border rounded flex items-center justify-center gap-2 bg-off">
-                             <span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
-                             <span className="text-[11px] text-muted font-medium">Waiting for bids</span>
+                            <span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                            <span className="text-[11px] text-muted font-medium">Waiting for bids</span>
                           </div>
                         )}
                       </div>
@@ -794,23 +793,23 @@ export default function SuperAdminDashboard() {
             <div className="bg-white rounded-[12px] w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
               <div className="px-[24px] py-[20px] border-b border-border bg-off flex justify-between items-center">
                 <h3 className="font-bold text-[16px] text-text tracking-wide flex items-center gap-2">
-                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg>
-                   Create Federal Task
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2" /><rect x="9" y="9" width="6" height="6" /></svg>
+                  Create Federal Task
                 </h3>
                 <button onClick={() => setShowTaskModal(false)} className="text-muted hover:text-burg font-bold text-[20px] leading-none">×</button>
               </div>
               <form onSubmit={handleCreateTask} className="p-[24px] space-y-4">
                 <div>
                   <label className="block text-[11px] font-bold text-muted uppercase mb-1">Task Title</label>
-                  <input type="text" value={taskForm.title} onChange={e => setTaskForm({...taskForm, title: e.target.value})} className="input w-full bg-cream focus:border-indigo-400" required />
+                  <input type="text" value={taskForm.title} onChange={e => setTaskForm({ ...taskForm, title: e.target.value })} className="input w-full bg-cream focus:border-indigo-400" required />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-muted uppercase mb-1">Public Description</label>
-                  <textarea value={taskForm.description} onChange={e => setTaskForm({...taskForm, description: e.target.value})} className="input w-full bg-cream focus:border-indigo-400 min-h-[100px]" required />
+                  <textarea value={taskForm.description} onChange={e => setTaskForm({ ...taskForm, description: e.target.value })} className="input w-full bg-cream focus:border-indigo-400 min-h-[100px]" required />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-muted uppercase mb-1">Estimated Budget (₹)</label>
-                  <input type="number" value={taskForm.budget_estimate} onChange={e => setTaskForm({...taskForm, budget_estimate: e.target.value})} className="input w-full bg-cream focus:border-indigo-400" required min="1" />
+                  <input type="number" value={taskForm.budget_estimate} onChange={e => setTaskForm({ ...taskForm, budget_estimate: e.target.value })} className="input w-full bg-cream focus:border-indigo-400" required min="1" />
                 </div>
                 <div className="pt-4 flex gap-3 border-t border-border mt-6">
                   <button type="button" onClick={() => setShowTaskModal(false)} className="btn-ghost flex-1 py-2.5 text-[13px] font-bold text-muted border border-border">Cancel</button>
