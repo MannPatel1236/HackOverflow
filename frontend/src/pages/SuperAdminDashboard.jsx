@@ -143,35 +143,22 @@ export default function SuperAdminDashboard() {
 
   const fetchAll = async () => {
     setLoading(true);
-    // Fetch stats
     try {
-      const statsRes = await getNationalStats();
+      const [statsRes, lbRes, adminRes, tasksRes] = await Promise.all([
+        getNationalStats(),
+        getLeaderboard(),
+        listAdmins(),
+        getTasks()
+      ]);
       setNationalStats(statsRes.data);
-    } catch (e) {
-      console.error('National stats error:', e);
-    }
-    // Fetch leaderboard
-    try {
-      const lbRes = await getLeaderboard();
       setLeaderboard(lbRes.data.leaderboard);
-    } catch (e) {
-      console.error('Leaderboard error:', e);
-    }
-    // Fetch admins
-    try {
-      const adminRes = await listAdmins();
       setAdmins(adminRes.data.admins);
-    } catch (e) {
-      console.error('Admins list error:', e);
-    }
-    // Fetch tasks
-    try {
-      const tasksRes = await getTasks();
       setTasks(tasksRes.data);
     } catch (e) {
-      console.error('Tasks error:', e);
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleCreateAdmin = async () => {
