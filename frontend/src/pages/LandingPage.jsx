@@ -49,8 +49,9 @@ export default function LandingPage() {
             <Link to="/login" className="btn-primary">
               Register / Sign Up
             </Link>
-            <Link to="/file-complaint" className="btn-ghost border border-border bg-transparent text-text hover:border-burg hover:text-burg">
-              File Complaint 📝
+            <Link to="/file-complaint" className="btn-ghost border border-border bg-transparent text-text hover:border-burg hover:text-burg flex items-center gap-2">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              File Complaint
             </Link>
           </div>
         </div>
@@ -118,7 +119,8 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button onClick={openWhatsApp} className="btn-primary flex items-center justify-center gap-2">
-              <span className="text-lg">📱</span> File on WhatsApp
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              File on WhatsApp
             </button>
             <Link to="/login" className="btn-secondary">
               Sign up on Web

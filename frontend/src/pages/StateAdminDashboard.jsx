@@ -161,7 +161,7 @@ export default function StateAdminDashboard() {
             <h1 className="font-serif text-[28px] font-bold text-text mb-1 flex items-center gap-[8px]">
               {SvgIcons.map} {stateName} Dashboard
             </h1>
-            <p className="text-[13px] text-muted font-medium">Municipal officer view — manage and analyze complaints across your state</p>
+            <p className="text-[13px] text-muted font-medium">Municipal officer view. Manage and analyze complaints across your state.</p>
           </div>
           <div className="flex items-center gap-[10px] shrink-0 self-start md:self-auto">
             {lastUpdated && (
@@ -204,7 +204,7 @@ export default function StateAdminDashboard() {
             <div className="flex flex-col gap-1 p-4 border border-border rounded-[6px] bg-green-bg shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all">
               <div className="flex justify-between items-center mb-1">
                  <div className="text-[11px] font-bold text-green uppercase tracking-wider">Resolution Rate</div>
-                 <div className="opacity-50 text-[14px]">✅</div>
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 text-green"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
               <div className="font-serif text-[28px] font-black text-green leading-none">{stats.stats.resolve_pct}%</div>
             </div>
@@ -212,7 +212,7 @@ export default function StateAdminDashboard() {
             <div className="flex flex-col gap-1 p-4 border border-border rounded-[6px] bg-amber-bg shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all">
               <div className="flex justify-between items-center mb-1">
                  <div className="text-[11px] font-bold text-amber uppercase tracking-wider">Active Pending</div>
-                 <div className="opacity-50 text-[14px]">⏳</div>
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 text-amber"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
               <div className="font-serif text-[28px] font-black text-amber leading-none">{stats.stats.pending}</div>
             </div>
@@ -220,7 +220,7 @@ export default function StateAdminDashboard() {
             <div className="flex flex-col gap-1 p-4 border border-burg/20 rounded-[6px] bg-burg-bg shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all">
               <div className="flex justify-between items-center mb-1">
                  <div className="text-[11px] font-bold text-burg uppercase tracking-wider">SLA Breaches</div>
-                 <div className="opacity-50 text-[14px]">⚠️</div>
+                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 text-burg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
               </div>
               <div className="font-serif text-[28px] font-black text-burg leading-none">{stats.stats.sla_breaches}</div>
             </div>
@@ -286,7 +286,8 @@ export default function StateAdminDashboard() {
                           {d.sla_breaches > 0 && (
                              <div className="mt-[8px] pt-[6px] border-t border-border">
                                 <span className="text-[11px] font-bold uppercase tracking-wider text-burg flex items-center gap-1">
-                                   ⚠️ {d.sla_breaches} SLA Breaches Active
+                                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                   {d.sla_breaches} SLA Breaches Active
                                 </span>
                              </div>
                           )}
@@ -321,7 +322,8 @@ export default function StateAdminDashboard() {
               <div className="absolute bottom-[20px] left-[20px] right-[20px] max-h-[40%] bg-white/95 backdrop-blur-md rounded-[8px] shadow-[0_12px_48px_rgba(0,0,0,0.15)] border border-border z-30 flex flex-col animate-fade-in overflow-hidden">
                 <div className="flex items-center justify-between px-[20px] py-[14px] border-b border-border bg-white sticky top-0 z-10">
                   <h3 className="font-bold text-[15px] text-text flex items-center gap-2">
-                     📍 <span className="uppercase tracking-wide">{selectedDistrict} District</span>
+                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                     <span className="uppercase tracking-wide">{selectedDistrict} District</span>
                   </h3>
                   <button onClick={() => setSelectedDistrict(null)} className="text-[11px] font-bold text-muted uppercase tracking-wider hover:text-burg px-2 py-1 bg-off rounded border border-border cursor-pointer transition-colors">Close ✕</button>
                 </div>
@@ -377,7 +379,9 @@ export default function StateAdminDashboard() {
                   </div>
                 ) : complaints.length === 0 ? (
                   <div className="py-[60px] flex flex-col items-center justify-center text-center px-[20px]">
-                     <div className="text-[32px] mb-[12px] opacity-60">📭</div>
+                     <div className="w-[48px] h-[48px] rounded-full bg-cream border border-border flex items-center justify-center mb-[12px] opacity-60">
+                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+                     </div>
                      <span className="text-[13px] font-bold text-text mb-[4px]">No Matches Found</span>
                      <p className="text-[12px] text-muted leading-relaxed">Adjust your filter parameters to see active complaints.</p>
                   </div>

@@ -77,8 +77,8 @@ export default function LoginPage() {
                 <div className="mb-[14px]">
                   <label className="block text-[11px] font-semibold text-text mb-[4px]">Mobile Number</label>
                   <div className="flex">
-                    <div className="flex items-center px-3 bg-cream border-[1.5px] border-r-0 border-border rounded-l-[5px] text-muted text-[13px] font-sans">
-                      🇮🇳 +91
+                    <div className="flex items-center px-3 bg-cream border-[1.5px] border-r-0 border-border rounded-l-[5px] text-muted text-[13px] font-mono font-semibold select-none">
+                      +91
                     </div>
                     <input
                       type="tel"
@@ -108,7 +108,7 @@ export default function LoginPage() {
                   }}
                   className="w-full p-[10px] rounded-[5px] bg-[#25D366] hover:bg-[#20bd5a] text-white border-none text-[13px] font-semibold cursor-pointer flex items-center justify-center gap-[8px] transition-colors"
                 >
-                  <span className="text-lg leading-none">📱</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                   File via WhatsApp instead
                 </button>
               </>

@@ -287,7 +287,9 @@ export default function FileComplaint() {
       <div className="min-h-screen bg-cream flex flex-col">
         <Navbar />
         <div className="max-w-lg mx-auto px-6 py-16 text-center animate-fade-in w-full">
-          <div className="w-[80px] h-[80px] mx-auto bg-green-bg border-2 border-green rounded-full flex items-center justify-center text-4xl mb-6 shadow-[0_8px_24px_rgba(22,84,58,0.15)]">✅</div>
+          <div className="w-[80px] h-[80px] mx-auto bg-green-bg border-2 border-green rounded-full flex items-center justify-center mb-6 shadow-[0_8px_24px_rgba(22,84,58,0.15)]">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
           <h2 className="font-serif text-[32px] font-bold text-text mb-2">Complaint Registered</h2>
           <p className="text-[14px] text-muted mb-8 max-w-[360px] mx-auto">Your grievance has been securely received and is being processed by our AI systems.</p>
 
@@ -363,8 +365,18 @@ export default function FileComplaint() {
             <label className="block text-[12px] font-bold text-text uppercase tracking-wider mb-[12px]">Submission Method</label>
             <div className="grid grid-cols-2 gap-[12px]">
               {[
-                { key: 'text', label: '✎ Text Description', desc: 'Type in any language' },
-                { key: 'voice', label: '🎤 Voice Recording', desc: 'Speak your issue' },
+                {
+                  key: 'text',
+                  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+                  label: 'Text Description',
+                  desc: 'Type in any language',
+                },
+                {
+                  key: 'voice',
+                  icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>,
+                  label: 'Voice Recording',
+                  desc: 'Speak your issue',
+                },
               ].map((m) => (
                 <button
                   key={m.key}
@@ -375,7 +387,7 @@ export default function FileComplaint() {
                       : 'border-border bg-white hover:border-burg/50 hover:bg-cream'
                   }`}
                 >
-                  <p className={`font-bold text-[14px] mb-[4px] ${mode === m.key ? 'text-burg' : 'text-text'}`}>{m.label}</p>
+                  <p className={`font-bold text-[14px] mb-[4px] flex items-center gap-2 ${mode === m.key ? 'text-burg' : 'text-text'}`}>{m.icon}{m.label}</p>
                   <p className="text-muted text-[11px] font-medium leading-[1.4]">{m.desc}</p>
                 </button>
               ))}
@@ -397,7 +409,8 @@ export default function FileComplaint() {
                   className="input resize-vertical min-h-[120px] text-[15px] leading-[1.6] bg-cream border-border focus:border-burg focus:ring-1 focus:ring-burg shadow-inner"
                 />
                 <p className="text-[11px] text-muted mt-[8px] font-medium flex items-center gap-1.5">
-                  <span className="text-burg">⚡</span> Write natively. Our AI handles the translation.
+                  <svg className="text-burg shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  Write natively. Our AI handles the translation.
                 </p>
               </div>
             ) : (
@@ -408,13 +421,17 @@ export default function FileComplaint() {
                     <>
                       <button
                         onClick={recording ? stopRecording : startRecording}
-                        className={`w-[72px] h-[72px] rounded-full flex items-center justify-center text-[28px] transition-all duration-300 shadow-md border-[4px] cursor-pointer ${
+                        className={`w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all duration-300 shadow-md border-[4px] cursor-pointer ${
                           recording
                             ? 'bg-red-50 text-red-600 border-red-500 animate-pulse scale-[1.05]'
                             : 'bg-white text-burg border-burg/20 hover:border-burg'
                         }`}
                       >
-                        {recording ? '⏹' : '🎤'}
+                        {recording ? (
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+                        ) : (
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                        )}
                       </button>
                       <div className="text-center">
                          <p className="text-[14px] font-bold text-text mb-[4px]">
@@ -430,9 +447,10 @@ export default function FileComplaint() {
                       </div>
                       <button
                         onClick={() => { setAudioBlob(null); setAudioUrl(''); }}
-                        className="btn-ghost w-full py-[10px] text-[13px] text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 bg-white"
+                        className="btn-ghost w-full py-[10px] text-[13px] text-red-600 border border-red-200 hover:bg-red-50 hover:border-red-300 bg-white flex items-center justify-center gap-2"
                       >
-                        🗑️ Delete & Re-record
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        Delete and Re-record
                       </button>
                     </div>
                   )}
@@ -449,7 +467,7 @@ export default function FileComplaint() {
                 <circle cx="12" cy="13" r="4"/>
               </svg>
               Attach Photos
-              <span className="text-muted font-medium normal-case tracking-normal text-[11px]">(optional, up to 5 — geotagged automatically)</span>
+              <span className="text-muted font-medium normal-case tracking-normal text-[11px]">(optional, up to 5, geotagged automatically)</span>
             </label>
 
             {/* Hidden camera input */}
@@ -516,7 +534,8 @@ export default function FileComplaint() {
           {/* Location */}
           <div className="pt-[16px] border-t border-border/60">
             <label className="block text-[12px] font-bold text-text uppercase tracking-wider mb-[12px] flex items-center gap-2">
-              📍 Incident Location
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Incident Location
               {geocoding && (
                 <span className="flex items-center gap-1.5 text-burg font-semibold normal-case tracking-normal text-[11px]">
                   <div className="w-3 h-3 border-[2px] border-burg/30 border-t-burg rounded-full animate-spin" />
@@ -610,7 +629,10 @@ export default function FileComplaint() {
 
           {error && (
             <div className="bg-burg-bg border border-burg/20 rounded-[6px] px-[16px] py-[12px]">
-              <p className="text-burg text-[13px] font-semibold flex items-center gap-2"><span>⚠️</span> {error}</p>
+              <p className="text-burg text-[13px] font-semibold flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                {error}
+              </p>
             </div>
           )}
 
@@ -623,19 +645,23 @@ export default function FileComplaint() {
                {loading ? (
                  <span className="flex items-center justify-center gap-3">
                    <div className="w-[18px] h-[18px] border-[2.5px] border-white/30 border-t-white rounded-full animate-spin" />
-                   {mode === 'voice' ? 'Processing Audio & Categorizing...' : 'AI Analyzing Complaint...'}
+                   {mode === 'voice' ? 'Processing Audio and Categorizing...' : 'AI Analyzing Complaint...'}
                  </span>
                ) : (
-                 '🚀 Submit Grievance Securely'
+                 <span className="flex items-center justify-center gap-2">
+                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                   Submit Grievance Securely
+                 </span>
                )}
              </button>
-             
+
              <div className="mt-[16px] text-center">
                <p className="text-[11px] text-muted font-medium inline-flex items-center gap-1.5 bg-cream px-[12px] py-[6px] rounded-full border border-border">
-                  <span className="text-burg">🤖</span> Intelligent AI-powered routing
+                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-burg"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                 Intelligent AI-powered routing
                </p>
              </div>
-          </div>
+           </div>
 
         </div>
       </div>

@@ -109,7 +109,7 @@ export default function TrackComplaint() {
         {/* Breach alert */}
         {complaint.sla_breach && (
           <div className="bg-burg-bg border border-burg/30 rounded-[6px] px-[16px] py-[12px] flex items-start sm:items-center gap-[12px]">
-            <span className="text-[18px] leading-none mt-0.5 sm:mt-0">⚠️</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-burg shrink-0 mt-0.5 sm:mt-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <div>
               <p className="text-burg font-bold text-[13px] uppercase tracking-wider mb-[2px]">Escalated: SLA Breached</p>
               <p className="text-burg/80 text-[12px] font-medium leading-[1.4]">This complaint has exceeded the standard 72-hour resolution target and has been automatically escalated to higher authorities.</p>

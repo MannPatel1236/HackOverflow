@@ -51,7 +51,8 @@ export default function AdminLoginPage() {
               Official Dashboard
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-bg border border-amber/20 text-amber text-[10px] font-bold tracking-widest uppercase">
-              🏛️ Municipal Officer Portal
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="22" x2="21" y2="22"/><rect x="2" y="9" width="4" height="13"/><rect x="18" y="9" width="4" height="13"/><rect x="10" y="13" width="4" height="9"/><path d="M18 22V5.86a2 2 0 0 0-.9-1.67L12.9 1.6a2 2 0 0 0-1.8 0L6.9 4.19A2 2 0 0 0 6 5.86V22"/></svg>
+              Municipal Officer Portal
             </div>
           </div>
 
@@ -84,7 +85,12 @@ export default function AdminLoginPage() {
               </div>
             )}
             <button onClick={handleLogin} className="w-full p-[12px] rounded-[5px] bg-burg hover:bg-burg-2 text-white border-none text-[14px] font-bold cursor-pointer transition-all duration-200 shadow-[0_4px_14px_rgba(139,26,26,0.28)]" disabled={loading}>
-              {loading ? 'Signing in...' : '🔐 Sign in as Officer'}
+              {loading ? 'Signing in...' : (
+                <span className="flex items-center justify-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  Sign in as Officer
+                </span>
+              )}
             </button>
             <p className="text-center text-[11px] text-dim mt-[12px]">
               Access restricted to authorized municipal officers only.

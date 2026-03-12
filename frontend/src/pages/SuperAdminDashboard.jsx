@@ -194,7 +194,7 @@ export default function SuperAdminDashboard() {
             <h1 className="font-serif text-[28px] font-bold text-text mb-1 flex items-center gap-[8px]">
               {SvgIcons.globe} National Control Center
             </h1>
-            <p className="text-[13px] text-muted font-medium">Super admin — pan-national orchestration and telemetry</p>
+            <p className="text-[13px] text-muted font-medium">Super admin. Pan-national orchestration and telemetry.</p>
           </div>
         </div>
 
@@ -231,7 +231,7 @@ export default function SuperAdminDashboard() {
                      <div className={`text-[11px] font-bold uppercase tracking-wider ${s.text === 'text-text' ? 'text-muted' : s.text}`}>{s.label}</div>
                      <div className="opacity-40">{s.icon}</div>
                   </div>
-                  <div className={`font-serif text-[28px] font-black leading-none ${s.text}`}>{s.value ?? '—'}</div>
+                  <div className={`font-serif text-[28px] font-black leading-none ${s.text}`}>{s.value ?? '-'}</div>
                 </div>
               ))}
             </div>
@@ -282,7 +282,7 @@ export default function SuperAdminDashboard() {
                                 </div>
                                 <div className="flex justify-between items-center text-[12px] pb-[4px]">
                                   <span className="text-muted font-medium">Mean TAT:</span>
-                                  <span className="font-bold text-[#1D4ED8] bg-[#EFF6FF] px-1 rounded">{s.avg_resolve_days ?? '—'}d</span>
+                                  <span className="font-bold text-[#1D4ED8] bg-[#EFF6FF] px-1 rounded">{s.avg_resolve_days ?? '-'}d</span>
                                 </div>
                                 {s.sla_breaches > 0 && (
                                    <div className="pt-[4px] border-t border-border">
@@ -415,7 +415,7 @@ export default function SuperAdminDashboard() {
                         <td className="px-[20px] py-[16px] font-serif text-[16px] font-bold text-text">{row.state}</td>
                         <td className="px-[20px] py-[16px] font-mono text-[13px] text-muted">{row.total.toLocaleString()}</td>
                         <td className="px-[20px] py-[16px] font-mono text-[13px] font-semibold text-text">{row.resolve_pct}%</td>
-                        <td className="px-[20px] py-[16px] font-mono text-[13px] text-muted">{row.avg_resolve_days != null ? `${row.avg_resolve_days}d` : '—'}</td>
+                        <td className="px-[20px] py-[16px] font-mono text-[13px] text-muted">{row.avg_resolve_days != null ? `${row.avg_resolve_days}d` : '-'}</td>
                         <td className="px-[20px] py-[16px] font-mono text-[13px]">
                           <span className={row.sla_breaches > 0 ? 'text-burg font-bold bg-burg-bg px-2 py-0.5 rounded' : 'text-muted'}>
                             {row.sla_breaches}

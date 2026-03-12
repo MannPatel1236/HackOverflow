@@ -94,7 +94,7 @@ export default function UserDashboard() {
               <div className="flex flex-col gap-1 p-3 border border-burg/20 rounded-[6px] bg-burg-bg">
                 <div className="flex justify-between items-center mb-1">
                    <div className="text-[11px] font-bold text-burg uppercase tracking-wider">SLA Breach</div>
-                   <div className="opacity-50 text-[14px]">⚠️</div>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 text-burg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 </div>
                 <div className="font-serif text-[28px] font-black text-burg leading-none">{stats.breach}</div>
                 <div className="text-[10px] text-burg/70">Overdue response</div>
