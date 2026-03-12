@@ -192,7 +192,7 @@ export default function SuperAdminDashboard() {
   const handleCreateTask = async (e) => {
     e.preventDefault();
     try {
-      await createTask({ title: taskForm.title, description: taskForm.description, budget_estimate: Number(taskForm.budget_estimate) });
+      await createTask({ complaint_id: taskForm.complaintId, title: taskForm.title, description: taskForm.description, budget_estimate: Number(taskForm.budget_estimate) });
       setShowTaskModal(false);
       alert('Partner Task Created Successfully!');
       fetchAll();
@@ -533,7 +533,7 @@ export default function SuperAdminDashboard() {
                   <table className="w-full text-[13px] border-collapse min-w-[800px]">
                     <thead>
                       <tr className="bg-off border-b border-border">
-                        {['Tracking ID', 'State', 'District', 'Department', 'Severity', 'Status', 'Filed'].map(h => (
+                        {['Tracking ID', 'State', 'District', 'Department', 'Severity', 'Status', 'Filed', 'Action'].map(h => (
                           <th key={h} className="px-[16px] py-[11px] text-left text-[10px] font-bold text-muted uppercase tracking-wider">{h}</th>
                         ))}
                       </tr>
@@ -558,6 +558,17 @@ export default function SuperAdminDashboard() {
                               <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${statusColor}`}>{c.status}</span>
                             </td>
                             <td className="px-[16px] py-[12px] text-muted font-mono text-[11px]">{new Date(c.filed_at).toLocaleDateString('en-IN')}</td>
+                            <td className="px-[16px] py-[12px]">
+                              <button 
+                                onClick={() => {
+                                  setTaskForm({ title: `Resolution: ${c.summary_en || c.tracking_id}`, description: `Task to resolve complaint ${c.tracking_id}: ${c.raw_text}`, budget_estimate: '', complaintId: c._id });
+                                  setShowTaskModal(true);
+                                }}
+                                className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-tight"
+                              >
+                                + Create Task
+                              </button>
+                            </td>
                           </tr>
                         );
                       })}
@@ -737,8 +748,12 @@ export default function SuperAdminDashboard() {
                               <div className="flex items-center gap-2 mb-1">
                                 <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${app.role === 'Sponsor' ? 'bg-green-bg text-green border border-green/20' : 'bg-burg-bg text-burg border border-burg/20'}`}>{app.role}</span>
                                 <span className="font-mono text-[13px] font-bold text-text">₹{app.bid_amount?.toLocaleString()}</span>
+                                <span className="text-[11px] font-bold text-navy ml-1">{app.user_id?.name || 'Partner'}</span>
                               </div>
-                              <p className="text-[11px] text-muted italic line-clamp-1">{app.message || 'No message provided'}</p>
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="text-[11px] text-muted italic line-clamp-1">{app.message || 'No message provided'}</p>
+                                {app.user_id?.phone && <span className="text-[10px] text-muted font-mono">{app.user_id.phone}</span>}
+                              </div>
                             </div>
                             {app.status === 'Pending' && task.status === 'Open' ? (
                               <button 

@@ -5,7 +5,7 @@ const User = require('../models/User');
 exports.createTask = async (req, res) => {
   try {
     const { complaint_id, title, description, budget_estimate } = req.body;
-    const admin_id = req.user.userId; // from auth middleware
+    const admin_id = req.admin._id; // from adminAuth middleware
 
     // Verify complaint exists & isn't already a task
     const complaint = await Complaint.findById(complaint_id);
@@ -32,27 +32,54 @@ exports.createTask = async (req, res) => {
 
 exports.getTasks = async (req, res) => {
   try {
-    const status = req.query.status || 'Open';
-    const tasks = await Task.find({ status })
+    const { status } = req.query;
+    let query = {};
+    
+    if (status && status !== 'all') {
+      query.status = status;
+    } else if (!status) {
+      if (req.tokenType === 'admin') {
+        // Admin sees all by default
+      } else {
+        // Partners see Open projects OR projects assigned to them
+        const userId = req.user?._id;
+        query = {
+          $or: [
+            { status: 'Open' },
+            { assigned_to: userId }
+          ]
+        };
+      }
+    }
+
+    const tasks = await Task.find(query)
       .populate('complaint_id')
-      .sort({ created_at: -1 });
+      .populate('applications.user_id', 'name phone')
+      .sort({ createdAt: -1 });
     res.json(tasks);
   } catch (err) {
+    console.error('Error fetching tasks:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 exports.applyForTask = async (req, res) => {
   try {
-    const user_id = req.user.userId;
+    const user_id = req.user?._id || req.user?.id;
     const { role, bid_amount, message } = req.body;
+
+    console.log(`Apply attempt: Task ${req.params.id}, User ${user_id}, Role ${role}`);
+
+    if (!user_id) {
+      return res.status(401).json({ error: 'User context missing from request auth' });
+    }
 
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ error: 'Task not found' });
     if (task.status !== 'Open') return res.status(400).json({ error: 'Task is no longer open for applications' });
 
     // Check if already applied
-    const alreadyApplied = task.applications.some(app => app.user_id.toString() === user_id.toString());
+    const alreadyApplied = task.applications.some(app => app.user_id && app.user_id.toString() === user_id.toString());
     if (alreadyApplied) return res.status(400).json({ error: 'You have already applied for this task' });
 
     task.applications.push({
@@ -106,6 +133,7 @@ exports.approveApplication = async (req, res) => {
         status_history: {
           status: 'In Progress',
           note: `Task assigned to a ${application.role.toLowerCase()}`,
+          updated_by: req.admin._id,
           timestamp: new Date()
         }
       }

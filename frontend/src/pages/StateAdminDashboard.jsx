@@ -451,8 +451,13 @@ export default function StateAdminDashboard() {
                                   <div className="flex items-center gap-2 mb-1">
                                     <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${app.role === 'Sponsor' ? 'bg-green-bg text-green border border-green/20' : 'bg-burg-bg text-burg border border-burg/20'}`}>{app.role}</span>
                                     <span className="font-mono text-[12px] font-bold text-text">₹{app.bid_amount?.toLocaleString()}</span>
+                                    <span className="text-[11px] font-bold text-navy ml-1">{app.user_id?.name || 'Unknown Partner'}</span>
                                   </div>
-                                  <p className="text-[11px] text-muted italic line-clamp-1 pr-2">{app.message || 'No message provided'}</p>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <p className="text-[11px] text-muted italic line-clamp-1 pr-2">{app.message || 'No message provided'}</p>
+                                    {app.user_id?.phone && <span className="text-[10px] text-muted font-mono">{app.user_id.phone}</span>}
+                                  </div>
+
                                 </div>
                                 {app.status === 'Pending' && task.status === 'Open' ? (
                                   <button 

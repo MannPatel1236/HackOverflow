@@ -107,6 +107,7 @@ router.get('/me', userAuth, async (req, res) => {
       _id: req.user._id,
       phone: req.user.phone,
       name: req.user.name,
+      role: req.user.role,
       preferred_language: req.user.preferred_language,
     },
   });

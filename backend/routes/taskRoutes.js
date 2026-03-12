@@ -11,8 +11,10 @@ const anyAuth = async (req, res, next) => {
     if (!token) return res.status(401).json({ error: 'No token provided' });
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.tokenType = decoded.type; // 'user' or 'admin'
+    req.user = { userId: decoded.id }; // Compatibility for some controllers
     next();
   } catch (err) {
+    console.error('anyAuth error:', err.message);
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 };

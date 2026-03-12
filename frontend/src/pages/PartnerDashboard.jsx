@@ -62,7 +62,10 @@ export default function PartnerDashboard() {
   };
 
   const hasApplied = (task) => {
-    return task.applications?.some(app => app.user_id === user._id);
+    return task.applications?.some(app => {
+      const applicantId = typeof app.user_id === 'object' ? app.user_id._id : app.user_id;
+      return applicantId === user._id;
+    });
   };
 
   if (loading) return <div className="p-8 text-center text-muted">Loading available projects...</div>;
