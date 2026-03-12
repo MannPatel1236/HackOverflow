@@ -14,7 +14,7 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { step: '01', title: 'Submit', desc: 'File via WhatsApp or web in your language — text or voice.' },
+  { step: '01', title: 'Submit', desc: 'File via WhatsApp or web in your language text or voice.' },
   { step: '02', title: 'Classify', desc: 'AI transcribes, classifies severity, and routes to the right department.' },
   { step: '03', title: 'Track', desc: 'Get a tracking link. See live status updates on WhatsApp.' },
   { step: '04', title: 'Resolve', desc: 'Municipal officers act. You\'re notified the moment it\'s fixed.' },
@@ -43,7 +43,7 @@ export default function LandingPage() {
             Grievance Platform
           </h1>
           <p className="text-[14px] text-muted leading-[1.8] max-w-[390px] mb-[28px]">
-            CivicAI empowers every Indian citizen to report urban issues in their native language — via voice, text, or WhatsApp. AI routes complaints instantly to the right municipal department.
+            CivicAI empowers every Indian citizen to report urban issues in their native language via voice, text, or WhatsApp. AI routes complaints instantly to the right municipal department.
           </p>
           <div className="flex gap-[12px]">
             <Link to="/login" className="btn-primary">
