@@ -208,17 +208,18 @@ export default function ComplaintCard({ complaint, showActions, onStatusChange, 
             </div>
           </div>
         )}
-      </>
-      );
+      </div>
+    </>
+  );
 }
 
-      function StageChanger({complaintId, current, onStatusChange}) {
+function StageChanger({ complaintId, current, onStatusChange }) {
   const [pendingStage, setPendingStage] = useState(null);
-      const [note, setNote] = useState('');
-      const [loading, setLoading] = useState(false);
-      const [toast, setToast] = useState(null); // {type: 'success' | 'error', msg: '' }
+  const [note, setNote] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null); // {type: 'success' | 'error', msg: '' }
 
-      const currentIdx = STATUSES.indexOf(current);
+  const currentIdx = STATUSES.indexOf(current);
 
   const handleConfirm = async () => {
     if (!pendingStage) return;
@@ -238,10 +239,10 @@ export default function ComplaintCard({ complaint, showActions, onStatusChange, 
     }
   };
 
-      return (
-      <div className="space-y-[8px]">
-        {/* Stage buttons row */}
-        <div className="flex items-center gap-[2px]">
+  return (
+    <div className="space-y-[8px]">
+      {/* Stage buttons row */}
+      <div className="flex items-center gap-[2px]">
           {STATUSES.map((status, idx) => {
             const isCompleted = idx < currentIdx;
             const isCurrent = status === current;
@@ -300,11 +301,12 @@ export default function ComplaintCard({ complaint, showActions, onStatusChange, 
 
         {/* Toast notification */}
         {toast && (
-          <div className={`text-[11px] font-bold px-[10px] py-[5px] rounded-[4px] text-center animate-fade-in ${toast.type === 'success' ? 'bg-green-bg text-green border border-green/20' : 'bg-burg-bg text-burg border border-burg/20'
-            }`}>
+          <div className={`text-[11px] font-bold px-[10px] py-[5px] rounded-[4px] text-center animate-fade-in ${
+            toast.type === 'success' ? 'bg-green-bg text-green border border-green/20' : 'bg-burg-bg text-burg border border-burg/20'
+          }`}>
             {toast.msg}
           </div>
         )}
       </div>
-      );
+  );
 }
