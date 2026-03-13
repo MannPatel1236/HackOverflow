@@ -13,26 +13,29 @@ const {
 
 const path = require('path');
 const fs = require('fs');
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-// Ensure upload dir exists
-const UPLOAD_DIR = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-// Multer config — disk storage so files persist
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname) || (file.mimetype.includes('webm') ? '.webm' : '.jpg');
-    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+// Cloudinary storage configuration
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'civicai_complaints',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'heic'],
+    resource_type: 'auto', // needed for audio files if any are sent via this route
   },
 });
+
 const upload = multer({
   storage,
-  limits: { fileSize: 25 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    const allowed = ['audio/webm', 'audio/mp4', 'image/jpeg', 'image/png', 'image/webp', 'image/heic'];
-    cb(null, allowed.some(t => file.mimetype.startsWith(t.split('/')[0])));
-  },
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB limit
 });
 
 // Accept: audio field + up to 5 image fields
@@ -60,14 +63,30 @@ router.post('/file', userAuth, uploadFields, async (req, res) => {
         const { createClient } = require('@deepgram/sdk');
         const deepgram = createClient(process.env.DEEPGRAM_API_KEY || 'MISSING_KEY');
 
-        const { result, error } = await deepgram.listen.prerecorded.transcribeFile(
-          fs.readFileSync(audioFile.path),
+        // Cloudinary provides a URL in `path`
+        let audioSource;
+        if (audioFile.path.startsWith('http')) {
+          audioSource = { url: audioFile.path };
+        } else {
+          audioSource = fs.readFileSync(audioFile.path); // fallback if somehow local
+        }
+
+        const { result, error } = await deepgram.listen.prerecorded.transcribeUrl(
+          audioSource,
           {
             model: 'nova-2',
             smart_format: true,
             detect_language: true,
           }
-        );
+        ).catch(async () => {
+          // Fallback to local arraybuffer/stream if deepgram URL transcribe fails
+          const resp = await fetch(audioFile.path);
+          const buffer = await resp.arrayBuffer();
+          return deepgram.listen.prerecorded.transcribeFile(
+            Buffer.from(buffer),
+            { model: 'nova-2', smart_format: true, detect_language: true }
+          );
+        });
 
         if (error) throw error;
 
@@ -101,9 +120,8 @@ router.post('/file', userAuth, uploadFields, async (req, res) => {
       }
     }
 
-    const BASE = process.env.BASE_URL || `http://localhost:${process.env.PORT || 5001}`;
     const images = imageFiles.map((f) => ({
-      url: `${BASE}/uploads/${f.filename}`,
+      url: f.path, // Cloudinary secure URL
       lat: imageMetadataMap[f.originalname]?.lat || null,
       lng: imageMetadataMap[f.originalname]?.lng || null,
     }));
@@ -221,7 +239,7 @@ router.get('/my', userAuth, async (req, res) => {
   try {
     const complaints = await Complaint.find({ user_id: req.user._id })
       .sort({ filed_at: -1 })
-      .select('tracking_id department severity status summary_en filed_at sla_breach');
+      .select('tracking_id department severity status summary_en filed_at sla_breach images');
 
     // Sort by severity priority: Critical > High > Medium > Low
     const severityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
