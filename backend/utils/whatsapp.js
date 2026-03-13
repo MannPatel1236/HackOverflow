@@ -142,7 +142,7 @@ async function classifyComplaint(text, lang = 'en') {
       lng: result.lng || null
     };
   } catch (err) {
-    console.error('Groq AI error:', err.response?.data || err.message);
+    console.error('Groq AI error:', err.response?.data ? JSON.stringify(err.response.data, null, 2) : err.message || err);
     return {
       department: 'Other',
       severity: 'Medium',

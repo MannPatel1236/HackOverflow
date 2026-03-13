@@ -151,8 +151,8 @@ export default function LoginPage() {
                       onClick={() => setRole('Partner')}
                       className={`p-3 rounded-[5px] border text-[12px] font-bold transition-all cursor-pointer ${
                         role === 'Partner'
-                          ? 'border-[#4f46e5] bg-[#4f46e5]/5 text-[#4f46e5]'
-                          : 'border-border text-muted hover:border-[#4f46e5]/40'
+                          ? 'border-navy bg-navy/5 text-navy'
+                          : 'border-border text-muted hover:border-navy/40'
                       }`}
                     >
                       🏗️ Partner

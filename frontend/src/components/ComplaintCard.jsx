@@ -59,14 +59,14 @@ const Icons = {
 const SEVERITY_STYLES = {
   Critical: 'bg-burg-bg text-burg border-burg/20',
   High: 'bg-amber-bg text-amber border-amber/20',
-  Medium: 'bg-blue-50 text-blue-600 border-blue-200',
+  Medium: 'bg-off text-muted border-border',
   Low: 'bg-green-bg text-green border-green/20',
 };
 
 const STATUS_STYLES = {
   Registered: 'bg-dim/10 text-muted border-dim/20',
   'Under Review': 'bg-amber-bg text-amber border-amber/20',
-  'In Progress': 'bg-blue-50 text-blue-600 border-blue-200',
+  'In Progress': 'bg-burg-bg text-burg border-burg/20',
   Resolved: 'bg-green-bg text-green border-green/20',
 };
 
@@ -160,7 +160,7 @@ export default function ComplaintCard({ complaint, showActions, onStatusChange, 
           {showActions && typeof onTaskCreate === 'function' && (
             <button
               onClick={() => onTaskCreate(complaint)}
-              className="text-center text-[12px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-[5px] px-[14px] py-[8px] transition-colors"
+              className="text-center text-[12px] font-bold text-burg bg-burg-bg hover:bg-burg-bg/80 border border-burg/20 rounded-[5px] px-[14px] py-[8px] transition-colors"
             >
               + Create Partner Task
             </button>
@@ -259,12 +259,12 @@ function StageChanger({ complaintId, current, onStatusChange }) {
                 }}
                 disabled={loading}
                 className={`flex-1 py-[6px] px-[4px] text-[9px] font-bold uppercase tracking-wider rounded-[4px] border transition-all duration-200 cursor-pointer flex items-center justify-center gap-[3px] ${isPending
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md scale-[1.03]'
+                  ? 'bg-burg text-white border-burg shadow-md scale-[1.03]'
                   : isCurrent
-                    ? 'bg-indigo-50 text-indigo-700 border-indigo-300 shadow-sm'
+                    ? 'bg-burg-bg text-burg border-burg/30 shadow-sm'
                     : isCompleted
                       ? 'bg-green-50 text-green-700 border-green-200'
-                      : 'bg-off text-muted border-border hover:border-indigo-300 hover:text-indigo-600'
+                      : 'bg-off text-muted border-border hover:border-burg/30 hover:text-burg'
                   } ${loading ? 'opacity-50 pointer-events-none' : ''}`}
                 title={status}
               >
@@ -283,12 +283,12 @@ function StageChanger({ complaintId, current, onStatusChange }) {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder={`Note for "${pendingStage}" (optional)`}
-              className="w-full text-[11px] px-[10px] py-[6px] border border-border rounded-[4px] bg-white focus:outline-none focus:border-indigo-400 font-medium"
+              className="w-full text-[11px] px-[10px] py-[6px] border border-border rounded-[4px] bg-white focus:outline-none focus:border-burg font-medium"
             />
             <button
               onClick={handleConfirm}
               disabled={loading}
-              className="w-full py-[6px] text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-[4px] border-none cursor-pointer transition-colors flex items-center justify-center gap-[6px]"
+              className="w-full py-[6px] text-[11px] font-bold text-white bg-burg hover:bg-burg-2 rounded-[4px] border-none cursor-pointer transition-colors flex items-center justify-center gap-[6px]"
             >
               {loading ? (
                 <div className="w-[14px] h-[14px] border-[2px] border-white/30 border-t-white rounded-full animate-spin" />

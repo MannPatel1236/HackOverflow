@@ -44,11 +44,11 @@
   }
   .badge-critical { @apply badge bg-burg-bg text-burg; }
   .badge-high { @apply badge bg-amber-bg text-amber; }
-  .badge-medium { @apply badge bg-blue-50 text-blue-700; }
+  .badge-medium { @apply badge bg-off text-muted; }
   .badge-low { @apply badge bg-green-bg text-green; }
   
   .status-registered { @apply px-2.5 py-1 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-700; }
-  .status-review { @apply px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700; }
+  .status-review { @apply px-2.5 py-1 rounded-full text-[10px] font-semibold bg-burg-bg text-burg; }
   .status-progress { @apply px-2.5 py-1 rounded-full text-[10px] font-semibold bg-amber-bg text-amber; }
   .status-resolved { @apply px-2.5 py-1 rounded-full text-[10px] font-semibold bg-green-bg text-green; }
 

@@ -266,7 +266,7 @@ export default function SuperAdminDashboard() {
               ) : [
                 { label: 'Total Nationwide', value: stats?.total_complaints?.toLocaleString(), icon: SvgIcons.clipboard, bg: 'bg-white', text: 'text-text' },
                 { label: 'Avg. Resolution', value: `${stats?.resolve_pct}%`, icon: SvgIcons.check, bg: 'bg-green-bg', text: 'text-green' },
-                { label: 'Mean TAT', value: `${stats?.avg_resolve_days}d`, icon: SvgIcons.clock, bg: 'bg-[#EFF6FF]', text: 'text-[#1D4ED8]' },
+                { label: 'Mean TAT', value: `${stats?.avg_resolve_days}d`, icon: SvgIcons.clock, bg: 'bg-off', text: 'text-navy' },
                 { label: 'Active Breaches', value: stats?.sla_breaches, icon: <span className="text-burg">{SvgIcons.alert}</span>, bg: 'bg-burg-bg', text: 'text-burg', border: 'border-burg/20' },
               ].map((s) => (
                 <div key={s.label} className={`flex flex-col gap-1 p-4 border rounded-[6px] shadow-sm hover:-translate-y-[2px] hover:shadow-card-hover transition-all ${s.bg} ${s.border || 'border-border'}`}>
@@ -325,7 +325,7 @@ export default function SuperAdminDashboard() {
                                 </div>
                                 <div className="flex justify-between items-center text-[12px] pb-[4px]">
                                   <span className="text-muted font-medium">Mean TAT:</span>
-                                  <span className="font-bold text-[#1D4ED8] bg-[#EFF6FF] px-1 rounded">{s.avg_resolve_days ?? '-'}d</span>
+                                  <span className="font-bold text-navy bg-off px-1 rounded">{s.avg_resolve_days ?? '-'}d</span>
                                 </div>
                                 {s.sla_breaches > 0 && (
                                   <div className="pt-[4px] border-t border-border">
@@ -540,9 +540,9 @@ export default function SuperAdminDashboard() {
                     <tbody>
                       {complaints.map(c => {
                         const statusColor = {
-                          'Registered': 'bg-blue-50 text-blue-700 border-blue-200',
+                          'Registered': 'bg-gray-50 text-muted border-border',
                           'Under Review': 'bg-amber-50 text-amber-700 border-amber-200',
-                          'In Progress': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                          'In Progress': 'bg-burg-bg text-burg border-burg/20',
                           'Resolved': 'bg-green-50 text-green-700 border-green-200',
                         }[c.status] || 'bg-off text-muted';
                         const sevColor = { Critical: 'text-red-600', High: 'text-orange-600', Medium: 'text-amber-600', Low: 'text-green-600' }[c.severity] || 'text-muted';
@@ -563,7 +563,7 @@ export default function SuperAdminDashboard() {
                                   setTaskForm({ title: `Resolution: ${c.summary_en || c.tracking_id}`, description: `Task to resolve complaint ${c.tracking_id}: ${c.raw_text}`, budget_estimate: '', complaintId: c._id });
                                   setShowTaskModal(true);
                                 }}
-                                className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-tight"
+                                className="text-[10px] font-bold text-burg hover:text-burg-2 uppercase tracking-tight"
                               >
                                 + Create Task
                               </button>
@@ -680,7 +680,7 @@ export default function SuperAdminDashboard() {
                       <p className="text-[14px] font-bold text-text mb-[2px]">{a.name}</p>
                       <p className="text-[12px] font-mono text-muted mb-[8px]">{a.email}</p>
                       <div className="flex flex-wrap items-center gap-[8px]">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block ${a.role === 'super_admin' ? 'bg-[#F3E8FF] text-[#9333EA] border-[#D8B4FE]' : 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]'}`}>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-[6px] py-[2px] rounded border inline-block ${a.role === 'super_admin' ? 'bg-burg-bg text-burg border-burg/20' : 'bg-off text-navy border-border'}`}>
                           {a.role === 'super_admin' ? 'Tier 1' : 'Tier 2'}
                         </span>
                         {a.state && <span className="text-[11px] font-semibold text-muted flex items-center gap-1">{SvgIcons.pin} {a.state}</span>}
@@ -710,14 +710,14 @@ export default function SuperAdminDashboard() {
             <div className="flex justify-between items-center bg-white p-[16px] rounded-[8px] border border-border shadow-[0_4px_24px_rgba(0,0,0,0.03)]">
               <div>
                 <h2 className="text-[16px] font-bold text-text flex items-center gap-2">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2" /><rect x="9" y="9" width="6" height="6" /></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1A1A" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2" /><rect x="9" y="9" width="6" height="6" /></svg>
                   National Partner Tasks
                 </h2>
                 <p className="text-[12px] text-muted">Manage all active bids and sponsorships from contractors across the country.</p>
               </div>
               <button
                 onClick={() => { setTaskForm({ title: '', description: '', budget_estimate: '' }); setShowTaskModal(true); }}
-                className="btn-primary py-2 px-4 shadow-md bg-indigo-600 hover:bg-indigo-700"
+                className="btn-primary py-2 px-4 shadow-md bg-burg hover:bg-burg-2"
               >
                 + Create Federal Task
               </button>
@@ -733,7 +733,7 @@ export default function SuperAdminDashboard() {
                   <div key={task._id} className="p-4 bg-white border border-border rounded-[8px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col">
                     <div className="flex gap-2 justify-between mb-3">
                       <span className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded ${task.status === 'Open' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>{task.status}</span>
-                      <span className="text-[13px] font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">₹{task.budget_estimate?.toLocaleString()}</span>
+                      <span className="text-[13px] font-mono font-bold text-burg bg-burg-bg px-2 py-0.5 rounded border border-burg/20">₹{task.budget_estimate?.toLocaleString()}</span>
                     </div>
                     <h4 className="font-bold text-[15px] text-text mb-2 line-clamp-2">{task.title}</h4>
                     <p className="text-[12px] text-muted line-clamp-3 mb-4 flex-1">{task.description}</p>
@@ -763,7 +763,7 @@ export default function SuperAdminDashboard() {
                                     alert('Application Approved! Task Assigned.');
                                   } catch (e) { alert('Error approving application'); }
                                 }}
-                                className="bg-indigo-600 text-white text-[11px] px-3 py-1.5 rounded-[4px] font-bold hover:bg-indigo-700 shrink-0 shadow-sm transition-colors"
+                                className="bg-burg text-white text-[11px] px-3 py-1.5 rounded-[4px] font-bold hover:bg-burg-2 shrink-0 shadow-sm transition-colors"
                               >
                                 Accept
                               </button>
@@ -793,7 +793,7 @@ export default function SuperAdminDashboard() {
             <div className="bg-white rounded-[12px] w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
               <div className="px-[24px] py-[20px] border-b border-border bg-off flex justify-between items-center">
                 <h3 className="font-bold text-[16px] text-text tracking-wide flex items-center gap-2">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2" /><rect x="9" y="9" width="6" height="6" /></svg>
+                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1A1A" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2" /><rect x="9" y="9" width="6" height="6" /></svg>
                   Create Federal Task
                 </h3>
                 <button onClick={() => setShowTaskModal(false)} className="text-muted hover:text-burg font-bold text-[20px] leading-none">×</button>
@@ -801,19 +801,19 @@ export default function SuperAdminDashboard() {
               <form onSubmit={handleCreateTask} className="p-[24px] space-y-4">
                 <div>
                   <label className="block text-[11px] font-bold text-muted uppercase mb-1">Task Title</label>
-                  <input type="text" value={taskForm.title} onChange={e => setTaskForm({ ...taskForm, title: e.target.value })} className="input w-full bg-cream focus:border-indigo-400" required />
+                  <input type="text" value={taskForm.title} onChange={e => setTaskForm({ ...taskForm, title: e.target.value })} className="input w-full bg-cream focus:border-burg" required />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-muted uppercase mb-1">Public Description</label>
-                  <textarea value={taskForm.description} onChange={e => setTaskForm({ ...taskForm, description: e.target.value })} className="input w-full bg-cream focus:border-indigo-400 min-h-[100px]" required />
+                  <textarea value={taskForm.description} onChange={e => setTaskForm({ ...taskForm, description: e.target.value })} className="input w-full bg-cream focus:border-burg min-h-[100px]" required />
                 </div>
                 <div>
                   <label className="block text-[11px] font-bold text-muted uppercase mb-1">Estimated Budget (₹)</label>
-                  <input type="number" value={taskForm.budget_estimate} onChange={e => setTaskForm({ ...taskForm, budget_estimate: e.target.value })} className="input w-full bg-cream focus:border-indigo-400" required min="1" />
+                  <input type="number" value={taskForm.budget_estimate} onChange={e => setTaskForm({ ...taskForm, budget_estimate: e.target.value })} className="input w-full bg-cream focus:border-burg" required min="1" />
                 </div>
                 <div className="pt-4 flex gap-3 border-t border-border mt-6">
                   <button type="button" onClick={() => setShowTaskModal(false)} className="btn-ghost flex-1 py-2.5 text-[13px] font-bold text-muted border border-border">Cancel</button>
-                  <button type="submit" className="flex-1 py-2.5 text-[13px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-[4px] transition-colors shadow-md">
+                   <button type="submit" className="flex-1 py-2.5 text-[13px] font-bold text-white bg-burg hover:bg-burg-2 rounded-[4px] transition-colors shadow-md">
                     Publish Task to Partners
                   </button>
                 </div>

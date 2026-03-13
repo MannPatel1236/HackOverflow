@@ -52,6 +52,11 @@ const uploadFields = upload.fields([
  * Body (multipart): { text?, state, district, city, lat?, lng? } + optional audio file
  */
 router.post('/file', userAuth, uploadFields, async (req, res) => {
+  console.log('--- New Complaint Filing Request ---');
+  console.log('User:', req.user?.phone);
+  console.log('Body:', JSON.stringify(req.body, null, 2));
+  console.log('Files:', Object.keys(req.files || {}));
+
   try {
     const { text, state, district, city, lat, lng } = req.body;
     let complaintText = text || '';
@@ -104,7 +109,9 @@ router.post('/file', userAuth, uploadFields, async (req, res) => {
     }
 
     // AI Classification
+    console.log('Classifying text:', complaintText);
     const ai = await classifyComplaint(complaintText, req.user.preferred_language);
+    console.log('AI Classification result:', JSON.stringify(ai, null, 2));
 
     // Build image URLs and pair with metadata
     const imageFiles = req.files?.images || [];
@@ -196,7 +203,8 @@ router.post('/file', userAuth, uploadFields, async (req, res) => {
     });
   } catch (err) {
     console.error('File complaint error:', err);
-    res.status(500).json({ error: err.message });
+    if (err.stack) console.error(err.stack);
+    res.status(500).json({ error: err.message || 'Unknown internal server error' });
   }
 });
 
@@ -240,14 +248,6 @@ router.get('/my', userAuth, async (req, res) => {
     const complaints = await Complaint.find({ user_id: req.user._id })
       .sort({ filed_at: -1 })
       .select('tracking_id department severity status summary_en filed_at sla_breach images');
-
-    // Sort by severity priority: Critical > High > Medium > Low
-    const severityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3 };
-    complaints.sort((a, b) => {
-      const sevDiff = (severityOrder[a.severity] ?? 4) - (severityOrder[b.severity] ?? 4);
-      if (sevDiff !== 0) return sevDiff;
-      return new Date(b.filed_at) - new Date(a.filed_at);
-    });
 
     res.json({ complaints });
   } catch (err) {

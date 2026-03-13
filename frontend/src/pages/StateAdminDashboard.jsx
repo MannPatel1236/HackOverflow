@@ -282,8 +282,8 @@ export default function StateAdminDashboard() {
                   {SvgIcons.map} Spatial Grievance Heatmap
                 </h2>
                 <div className="flex items-center gap-[12px] text-[10px] font-bold uppercase tracking-wider bg-off px-[10px] py-[6px] rounded border border-border">
-                  <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#1d4ed8]"></span> Standard</div>
-                  <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#7a5200]"></span> High</div>
+                  <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-muted"></span> Standard</div>
+                  <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber"></span> High</div>
                   <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-burg"></span> Critical</div>
                 </div>
               </div>
@@ -305,7 +305,7 @@ export default function StateAdminDashboard() {
                       center={[d.lat, d.lng]}
                       radius={Math.min(10 + d.count * 1.5, 35)}
                       pathOptions={{
-                        fillColor: d.sla_breaches > 0 ? '#8b1a1a' : d.critical > 0 ? '#7a5200' : '#1d4ed8',
+                        fillColor: d.sla_breaches > 0 ? '#8b1a1a' : d.critical > 0 ? '#7a5200' : '#767676',
                         fillOpacity: 0.8,
                         color: '#ffffff',
                         weight: 2,
@@ -398,7 +398,7 @@ export default function StateAdminDashboard() {
               {/* Role Toggle for Admin (Complaints vs Tasks) */}
               <div className="flex bg-white rounded-[6px] p-1 border border-border mb-3">
                 <button onClick={() => setViewingTasks(false)} className={`flex-1 text-[12px] py-1.5 font-bold rounded ${!viewingTasks ? 'bg-burg text-white shadow' : 'text-muted'}`}>Complaints</button>
-                <button onClick={() => setViewingTasks(true)} className={`flex-1 text-[12px] py-1.5 font-bold rounded ${viewingTasks ? 'bg-indigo-600 text-white shadow' : 'text-muted'}`}>Partner Tasks</button>
+                <button onClick={() => setViewingTasks(true)} className={`flex-1 text-[12px] py-1.5 font-bold rounded ${viewingTasks ? 'bg-navy text-white shadow' : 'text-muted'}`}>Partner Tasks</button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
@@ -447,7 +447,7 @@ export default function StateAdminDashboard() {
                   <div key={task._id} className="p-4 bg-white border border-border rounded shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
                     <div className="flex gap-2 justify-between mb-2">
                       <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${task.status === 'Open' ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>{task.status}</span>
-                      <span className="text-[12px] font-mono font-bold text-indigo-700">₹{task.budget_estimate?.toLocaleString()}</span>
+                      <span className="text-[12px] font-mono font-bold text-burg">₹{task.budget_estimate?.toLocaleString()}</span>
                     </div>
                     <h4 className="font-bold text-[14px] text-text mb-1 leading-snug">{task.title}</h4>
 
@@ -477,7 +477,7 @@ export default function StateAdminDashboard() {
                                     alert('Application Approved! Task Assigned.');
                                   } catch (e) { alert('Error approving application'); }
                                 }}
-                                className="bg-indigo-600 text-white text-[11px] px-3 py-1.5 rounded-[4px] font-bold hover:bg-indigo-700 shrink-0 shadow-sm"
+                                className="bg-burg text-white text-[11px] px-3 py-1.5 rounded-[4px] font-bold hover:bg-burg-2 shrink-0 shadow-sm"
                               >
                                 Accept
                               </button>
@@ -524,7 +524,7 @@ export default function StateAdminDashboard() {
           <div className="bg-white rounded-[12px] w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
             <div className="px-[24px] py-[20px] border-b border-border bg-off flex justify-between items-center">
               <h3 className="font-bold text-[16px] text-text tracking-wide flex items-center gap-2">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2" /><rect x="9" y="9" width="6" height="6" /></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B1A1A" strokeWidth="2.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2" /><rect x="9" y="9" width="6" height="6" /></svg>
                 Create Partner Task
               </h3>
               <button onClick={() => setShowTaskModal(false)} className="text-muted hover:text-burg font-bold text-[20px] leading-none">×</button>
@@ -532,21 +532,21 @@ export default function StateAdminDashboard() {
             <form onSubmit={handleCreateTask} className="p-[24px] space-y-4">
               <div>
                 <label className="block text-[11px] font-bold text-muted uppercase mb-1">Task Title</label>
-                <input type="text" value={taskForm.title} onChange={e => setTaskForm({ ...taskForm, title: e.target.value })} className="input w-full bg-cream focus:border-indigo-400" required />
+                <input type="text" value={taskForm.title} onChange={e => setTaskForm({ ...taskForm, title: e.target.value })} className="input w-full bg-cream focus:border-burg" required />
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-muted uppercase mb-1">Public Description</label>
-                <textarea value={taskForm.description} onChange={e => setTaskForm({ ...taskForm, description: e.target.value })} className="input w-full bg-cream focus:border-indigo-400 min-h-[100px]" required />
+                <textarea value={taskForm.description} onChange={e => setTaskForm({ ...taskForm, description: e.target.value })} className="input w-full bg-cream focus:border-burg min-h-[100px]" required />
                 <p className="text-[10px] text-muted mt-1 leading-tight">Partners will see this description to formulate their bids.</p>
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-muted uppercase mb-1">Estimated Budget (₹)</label>
-                <input type="number" value={taskForm.budget_estimate} onChange={e => setTaskForm({ ...taskForm, budget_estimate: e.target.value })} className="input w-full bg-cream focus:border-indigo-400" required placeholder="e.g. 50000" min="1" />
+                <input type="number" value={taskForm.budget_estimate} onChange={e => setTaskForm({ ...taskForm, budget_estimate: e.target.value })} className="input w-full bg-cream focus:border-burg" required placeholder="e.g. 50000" min="1" />
                 <p className="text-[10px] text-muted mt-1 leading-tight">This sets expectations for Contractors. Sponsors will know the funding target.</p>
               </div>
               <div className="pt-4 flex gap-3 border-t border-border mt-6">
                 <button type="button" onClick={() => setShowTaskModal(false)} className="btn-ghost flex-1 py-2.5 text-[13px] font-bold text-muted border border-border">Cancel</button>
-                <button type="submit" className="flex-1 py-2.5 text-[13px] font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-[4px] transition-colors shadow-md">
+                <button type="submit" className="flex-1 py-2.5 text-[13px] font-bold text-white bg-burg hover:bg-burg-2 rounded-[4px] transition-colors shadow-md">
                   Publish Task to Partners
                 </button>
               </div>

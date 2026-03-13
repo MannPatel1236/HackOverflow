@@ -29,7 +29,7 @@ function LoadingScreen() {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+        <div className="w-10 h-10 rounded-full border-2 border-burg border-t-transparent animate-spin" />
         <p className="text-slate-400 text-sm">Loading CivicAI...</p>
       </div>
     </div>
