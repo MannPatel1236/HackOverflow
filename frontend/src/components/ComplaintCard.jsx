@@ -223,19 +223,19 @@ function StageChanger({ complaintId, current, onStatusChange }) {
 
   const handleConfirm = async () => {
     if (!pendingStage) return;
-      setLoading(true);
-      setToast(null);
-      try {
-        await onStatusChange(complaintId, pendingStage, note);
-      setToast({type: 'success', msg: 'Updated ✓' });
+    setLoading(true);
+    setToast(null);
+    try {
+      await onStatusChange(complaintId, pendingStage, note);
+      setToast({ type: 'success', msg: 'Updated ✓' });
       setPendingStage(null);
       setNote('');
       setTimeout(() => setToast(null), 3000);
     } catch {
-        setToast({ type: 'error', msg: 'Failed ✗' });
+      setToast({ type: 'error', msg: 'Failed ✗' });
       setTimeout(() => setToast(null), 3000);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -243,70 +243,69 @@ function StageChanger({ complaintId, current, onStatusChange }) {
     <div className="space-y-[8px]">
       {/* Stage buttons row */}
       <div className="flex items-center gap-[2px]">
-          {STATUSES.map((status, idx) => {
-            const isCompleted = idx < currentIdx;
-            const isCurrent = status === current;
-            const isPending = status === pendingStage;
+        {STATUSES.map((status, idx) => {
+          const isCompleted = idx < currentIdx;
+          const isCurrent = status === current;
+          const isPending = status === pendingStage;
 
-            return (
-              <button
-                key={status}
-                onClick={() => {
-                  if (status !== current) {
-                    setPendingStage(pendingStage === status ? null : status);
-                    setNote('');
-                  }
-                }}
-                disabled={loading}
-                className={`flex-1 py-[6px] px-[4px] text-[9px] font-bold uppercase tracking-wider rounded-[4px] border transition-all duration-200 cursor-pointer flex items-center justify-center gap-[3px] ${isPending
-                  ? 'bg-burg text-white border-burg shadow-md scale-[1.03]'
-                  : isCurrent
-                    ? 'bg-burg-bg text-burg border-burg/30 shadow-sm'
-                    : isCompleted
-                      ? 'bg-green-50 text-green-700 border-green-200'
-                      : 'bg-off text-muted border-border hover:border-burg/30 hover:text-burg'
-                  } ${loading ? 'opacity-50 pointer-events-none' : ''}`}
-                title={status}
-              >
-                {isCompleted && <span className="text-green-600">{Icons.Check}</span>}
-                {status.split(' ').map(w => w[0]).join('')}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Notes + Confirm panel */}
-        {pendingStage && (
-          <div className="animate-fade-in space-y-[6px]">
-            <input
-              type="text"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder={`Note for "${pendingStage}" (optional)`}
-              className="w-full text-[11px] px-[10px] py-[6px] border border-border rounded-[4px] bg-white focus:outline-none focus:border-burg font-medium"
-            />
+          return (
             <button
-              onClick={handleConfirm}
+              key={status}
+              onClick={() => {
+                if (status !== current) {
+                  setPendingStage(pendingStage === status ? null : status);
+                  setNote('');
+                }
+              }}
               disabled={loading}
-              className="w-full py-[6px] text-[11px] font-bold text-white bg-burg hover:bg-burg-2 rounded-[4px] border-none cursor-pointer transition-colors flex items-center justify-center gap-[6px]"
+              className={`flex-1 py-[6px] px-[4px] text-[9px] font-bold uppercase tracking-wider rounded-[4px] border transition-all duration-200 cursor-pointer flex items-center justify-center gap-[3px] ${isPending
+                ? 'bg-burg text-white border-burg shadow-md scale-[1.03]'
+                : isCurrent
+                  ? 'bg-burg-bg text-burg border-burg/30 shadow-sm'
+                  : isCompleted
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-off text-muted border-border hover:border-burg/30 hover:text-burg'
+                } ${loading ? 'opacity-50 pointer-events-none' : ''}`}
+              title={status}
             >
-              {loading ? (
-                <div className="w-[14px] h-[14px] border-[2px] border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                `Confirm → ${pendingStage}`
-              )}
+              {isCompleted && <span className="text-green-600">{Icons.Check}</span>}
+              {status.split(' ').map(w => w[0]).join('')}
             </button>
-          </div>
-        )}
-
-        {/* Toast notification */}
-        {toast && (
-          <div className={`text-[11px] font-bold px-[10px] py-[5px] rounded-[4px] text-center animate-fade-in ${
-            toast.type === 'success' ? 'bg-green-bg text-green border border-green/20' : 'bg-burg-bg text-burg border border-burg/20'
-          }`}>
-            {toast.msg}
-          </div>
-        )}
+          );
+        })}
       </div>
+
+      {/* Notes + Confirm panel */}
+      {pendingStage && (
+        <div className="animate-fade-in space-y-[6px]">
+          <input
+            type="text"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder={`Note for "${pendingStage}" (optional)`}
+            className="w-full text-[11px] px-[10px] py-[6px] border border-border rounded-[4px] bg-white focus:outline-none focus:border-burg font-medium"
+          />
+          <button
+            onClick={handleConfirm}
+            disabled={loading}
+            className="w-full py-[6px] text-[11px] font-bold text-white bg-burg hover:bg-burg-2 rounded-[4px] border-none cursor-pointer transition-colors flex items-center justify-center gap-[6px]"
+          >
+            {loading ? (
+              <div className="w-[14px] h-[14px] border-[2px] border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              `Confirm → ${pendingStage}`
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div className={`text-[11px] font-bold px-[10px] py-[5px] rounded-[4px] text-center animate-fade-in ${toast.type === 'success' ? 'bg-green-bg text-green border border-green/20' : 'bg-burg-bg text-burg border border-burg/20'
+          }`}>
+          {toast.msg}
+        </div>
+      )}
+    </div>
   );
 }
